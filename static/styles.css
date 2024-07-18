@@ -3,10 +3,16 @@ body {
     margin: 0;
     padding: 0;
     background: url('{{ url_for('static', filename='background.jpg') }}') no-repeat center center fixed;
-    background-size: cover;
+    background-size: contain;
     color: white;
 }
 
+
+
+body {
+    background: url('/static/background.jpg') repeat-x center center fixed;
+    background-size: contain;
+}
 .header {
     background-color: black;
     color: white;

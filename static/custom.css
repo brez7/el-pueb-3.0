@@ -123,14 +123,61 @@ form button:hover {
     color: #ff0d00 !important;
  }
 
- .btn-primary {
-    color: #fff;
-    background-color: #ff0000;
-    border-color: #ffffff;
+ h2.text-danger {     
+    text-transform: none;
+    font-size: 20px;
+    color: #ffa500 !important;
+    
+ }
+
+ /* Initial button style */
+.btn-primary {
+    color: #fff; /* White text */
+    background-color: #ff0000; /* Red background */
+    border-color: #ffffff; /* White border */
+    max-width: 40%;
+    padding: 10px 20px;
+    cursor: pointer;
+    transition: background-color 0.3s ease, border-color 0.3s ease;
+    outline: none; /* Remove the default outline */
+    -webkit-tap-highlight-color: transparent; /* Remove blue highlight on mobile devices */
 }
 
+/* Hover state */
 .btn-primary:hover {
-    background-color: rgb(0, 0, 0);
-    border-color: white;
- 
+    background-color: rgb(0, 0, 0); /* Black background on hover */
+    border-color: white; /* White border on hover */
+}
+
+/* Active state */
+.btn-primary:active {
+    background-color: grey !important; /* Grey background on click */
+    border-color: white !important; /* White border on click */
+    outline: none !important;
+    box-shadow: none !important; /* Remove any box-shadow */
+}
+
+/* Focus state */
+.btn-primary:focus {
+    background-color: #ff0000; /* Keep red background on focus */
+    border-color: #ffffff; /* Keep white border on focus */
+    outline: none; /* Remove the default outline */
+    box-shadow: none; /* Remove any box-shadow */
+}
+
+/* Webkit browsers (Chrome, Safari) */
+.btn-primary:focus::-webkit-focus-ring-color {
+    color: transparent;
+    outline: none;
+}
+
+/* Firefox */
+.btn-primary:-moz-focusring {
+    outline: none;
+}
+
+/* Additional styles for comprehensive coverage */
+.btn-primary:focus-visible {
+    outline: none;
+    box-shadow: none;
 }

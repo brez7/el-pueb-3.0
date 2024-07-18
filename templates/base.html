@@ -21,8 +21,10 @@
     <style>
       body {
         background: url("{{ url_for('static', filename='background.jpg') }}")
-          no-repeat center center fixed;
-        background-size: cover;
+    background: url('/static/background.jpg') repeat-x center center fixed;
+    background-size: contain;
+    
+    
       }
     </style>
   </head>
