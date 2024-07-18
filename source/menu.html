@@ -1,5 +1,21 @@
-{% extends "base.html" %} {% block title %}Home - El Pueblo Mexican Food{%
-endblock %} {% block content %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Menu</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <style>
+        body {
+            background: url('{{ url_for('static', filename='background.jpg') }}') no-repeat center center fixed;
+            background-size: cover;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <img src="{{ url_for('static', filename='logo-final-el-pueblo-mex.png') }}" alt="El Pueblo Mexican Food">
+    </div>
     <div class="container">
         <h1>Menu</h1>
         <form action="{{ url_for('menu', people=request.args['people'], date=request.args['date'], time=request.args['time']) }}" method="post">
@@ -14,5 +30,5 @@ endblock %} {% block content %}
             <button type="submit">Checkout</button>
         </form>
     </div>
- 
-{% endblock %}
+</body>
+</html>
