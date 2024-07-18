@@ -1,10 +1,10 @@
 {% extends "base.html" %} {% block title %}Home - El Pueblo Mexican Food{%
 endblock %} {% block content %}
 
-<div class="container">
-  <h1>Welcome to El Pueblo Mexican Food</h1>
+<div class="container" style="background: transparent;">
+  <h1 class="text-danger">Welcome to El Pueblo Mexican Food</h1>
   <p>Your favorite place for delicious Mexican cuisine.</p>
-  <a href="{{ url_for('event_details') }}">Plan Your Event</a>
+  <a href="{{ url_for('event_details') }}" class="btn btn-primary">Plan Your Event</a>
   <!-- Add your homepage content here -->
 </div>
 {% endblock %}

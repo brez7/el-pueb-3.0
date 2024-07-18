@@ -4,6 +4,11 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>{% block title %}El Pueblo Mexican Food{% endblock %}</title>
+    <!-- Bootstrap CSS -->
+    <link
+      rel="stylesheet"
+      href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css"
+    />
     <link
       rel="stylesheet"
       href="{{ url_for('static', filename='styles.css') }}"
@@ -13,10 +18,9 @@
       href="{{ url_for('static', filename='custom.css') }}"
     />
     <script src="https://js.stripe.com/v3/"></script>
-
     <style>
       body {
-        background: url("{{ url_for("static", filename="background.jpg") }}")
+        background: url("{{ url_for('static', filename='background.jpg') }}")
           no-repeat center center fixed;
         background-size: cover;
       }
@@ -26,78 +30,66 @@
     <div class="header">
       <img
         src="{{ url_for('static', filename='logo-final-el-pueblo-mex.png') }}"
+        class="img-fluid mx-auto d-block"
         alt="El Pueblo Mexican Food"
       />
       <div id="et-top-navigation" data-height="115" data-fixed-height="40">
-        <nav id="top-menu-nav">
-          <ul id="top-menu" class="nav">
-            <li class="menu-item">
-              <a href="https://elpueblomex.com/">HOME</a>
-            </li>
-            <li class="menu-item">
-              <a href="https://elpueblomex.com/menu/">MENU</a>
-            </li>
-            <li class="menu-item">
-              <a href="https://elpueblomex.com/del-mar-bar/">BARS</a>
-            </li>
-            <li class="menu-item">
-              <a href="https://elpueblomex.com/order-online-selection/"
-                >ORDER</a
-              >
-            </li>
-            <li class="menu-item">
-              <a href="https://elpueblomex.com/gallery/">GALLERY</a>
-            </li>
-            <li class="menu-item">
-              <a href="https://elpueblomex.com/catering/">CATERING</a>
-            </li>
-            <li class="menu-item">
-              <a href="https://elpueblomex.com/latest-news/">NEWS</a>
-            </li>
-            <li class="menu-item">
-              <a href="https://elpueblomex.com/job-openings/">CAREERS</a>
-            </li>
-            <li class="menu-item menu-item-has-children">
-              <a href="https://elpueblomex.com/locations/">LOCATIONS</a>
-              <ul class="sub-menu">
-                <li class="menu-item">
-                  <a
-                    href="https://elpueblomex.com/locations/el-pueblo-mexican-food-in-cardiff-by-the-sea/"
-                    >CARDIFF-BY-THE-SEA</a
-                  >
-                </li>
-                <li class="menu-item">
-                  <a
-                    href="https://elpueblomex.com/locations/el-pueblo-mexican-food-in-carlsbad/"
-                    >CARLSBAD</a
-                  >
-                </li>
-                <li class="menu-item">
-                  <a
-                    href="https://elpueblomex.com/locations/el-pueblo-mexican-food-in-carmel-valley/"
-                    >CARMEL VALLEY</a
-                  >
-                </li>
-                <li class="menu-item">
-                  <a
-                    href="https://elpueblomex.com/locations/el-pueblo-mexican-food-in-del-mar/"
-                    >DEL MAR</a
-                  >
-                </li>
-              </ul>
-            </li>
-            <li class="menu-item">
-              <a href="https://elpueblomex.com/event-space-reservation/"
-                >RESERVE</a
-              >
-            </li>
-            <li class="menu-item">
-              <a href="https://elpueblomex.com/contact-us/">CONTACT</a>
-            </li>
-          </ul>
+        <nav id="top-menu-nav" class="navbar navbar-expand-lg navbar-dark">
+          <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+          </button>
+          <div class="collapse navbar-collapse justify-content-center" id="navbarNav">
+            <ul id="top-menu" class="navbar-nav">
+              <li class="nav-item">
+                <a class="nav-link" href="https://elpueblomex.com/">HOME</a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" href="https://elpueblomex.com/menu/">MENU</a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" href="https://elpueblomex.com/del-mar-bar/">BARS</a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" href="https://elpueblomex.com/order-online-selection/">ORDER</a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" href="https://elpueblomex.com/gallery/">GALLERY</a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" href="https://elpueblomex.com/catering/">CATERING</a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" href="https://elpueblomex.com/latest-news/">NEWS</a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" href="https://elpueblomex.com/job-openings/">CAREERS</a>
+              </li>
+              <li class="nav-item dropdown">
+                <a class="nav-link dropdown-toggle" href="https://elpueblomex.com/locations/" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                  LOCATIONS
+                </a>
+                <div class="dropdown-menu bg-dark" aria-labelledby="navbarDropdown">
+                  <a class="dropdown-item text-white" href="https://elpueblomex.com/locations/el-pueblo-mexican-food-in-cardiff-by-the-sea/">CARDIFF-BY-THE-SEA</a>
+                  <a class="dropdown-item text-white" href="https://elpueblomex.com/locations/el-pueblo-mexican-food-in-carlsbad/">CARLSBAD</a>
+                  <a class="dropdown-item text-white" href="https://elpueblomex.com/locations/el-pueblo-mexican-food-in-carmel-valley/">CARMEL VALLEY</a>
+                  <a class="dropdown-item text-white" href="https://elpueblomex.com/locations/el-pueblo-mexican-food-in-del-mar/">DEL MAR</a>
+                </div>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" href="https://elpueblomex.com/event-space-reservation/">RESERVE</a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" href="https://elpueblomex.com/contact-us/">CONTACT</a>
+              </li>
+            </ul>
+          </div>
         </nav>
       </div>
     </div>
-    <div class="container">{% block content %}{% endblock %}</div>
+ {% block content %}{% endblock %}
+    <!-- Bootstrap JS, Popper.js, and jQuery -->
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.3/dist/umd/popper.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
   </body>
 </html>
