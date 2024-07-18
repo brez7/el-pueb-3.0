@@ -1,0 +1,171 @@
+body {
+    font-family: 'Arial', sans-serif;
+    margin: 0;
+    padding: 0;
+    background: url('{{ url_for('static', filename='background.jpg') }}') no-repeat center center fixed;
+    background-size: cover;
+    color: white;
+}
+
+.header {
+    background-color: black;
+    color: white;
+    padding: 20px 0;
+    text-align: center;
+}
+
+.header img {
+    height: 90px;
+}
+
+#top-menu-nav {
+    text-align: center;
+    margin-top: 20px;
+}
+
+#top-menu {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+#top-menu .menu-item {
+    display: inline-block;
+    margin: 0 15px;
+}
+
+#top-menu .menu-item a {
+    color: white;
+    text-transform: uppercase;
+    text-decoration: none;
+    font-weight: bold;
+    font-size: 14px;
+}
+
+#top-menu .menu-item a:hover {
+    color: #ff0000;
+}
+
+.sub-menu {
+    display: none;
+    position: absolute;
+    background-color: black;
+    padding: 10px;
+    list-style: none;
+    border-radius: 5px;
+    margin-top: 5px;
+}
+
+.menu-item-has-children:hover .sub-menu {
+    display: block;
+}
+
+.sub-menu .menu-item {
+    display: block;
+    margin: 5px 0;
+}
+
+.sub-menu .menu-item a {
+    color: white;
+    font-size: 14px;
+}
+
+.sub-menu .menu-item a:hover {
+    color: #ff0000;
+}
+
+.container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 20px;
+    border-radius: 10px;
+    text-align: left; /* Align text to the left */
+}
+
+h1 {
+    color: #ff0000; /* Red color for headings */
+ 
+    margin-bottom: 20px;
+}
+
+h2 {
+    color: #ff0000; /* Red color for subheadings */
+    margin-bottom: 15px;
+}
+
+a {
+    color: #ff0000; /* Red color for links */
+    text-decoration: none;
+    font-weight: bold;
+    display: inline-block;
+    margin-top: 20px;
+    text-align: left; /* Align text to the left */
+    width: 100%;
+}
+
+a:hover {
+    color: white;
+}
+
+form {
+    max-width: 500px;
+    margin: 20px 0; /* Adjust margin to remove centering */
+    /* padding: 20px; */
+    border-radius: 10px;
+    text-align: left; /* Align text to the left */
+}
+
+form div {
+    margin-bottom: 15px;
+    text-align: left; /* Align text to the left */
+}
+
+form input[type="number"],
+form input[type="email"],
+form input[type="text"],
+form input[type="date"],
+form select,
+.StripeElement {
+    width: 100%;
+    padding: 10px;
+    margin-top: 5px;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+    box-sizing: border-box;
+    font-size: 16px;
+    color: black;
+    background-color: white; /* White background for fields */
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+form input::placeholder,
+form select::placeholder {
+    color: #aaa;
+}
+
+form input:focus::placeholder,
+form select:focus::placeholder {
+    color: transparent;
+}
+
+.StripeElement--focus {
+    border-color: #ff0000; /* Red border on focus */
+}
+
+form button {
+    background-color: #ff0000;
+    color: white;
+    padding: 10px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    width: 100%;
+    font-size: 16px;
+    font-weight: bold;
+    text-align: left; /* Align text to the left */
+}
+
+form button:hover {
+    background-color: #cc0000;
+}
+ 

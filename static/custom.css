@@ -1,0 +1,104 @@
+body {
+    font-family: 'Arial', sans-serif;
+    margin: 0;
+    padding: 0;
+    background: url('{{ url_for('static', filename='background.jpg') }}') no-repeat center center fixed;
+    background-size: cover;
+    color: white;
+}
+
+.header {
+    background-color: black;
+    color: white;
+    padding: 20px 0;
+    text-align: center;
+}
+
+.header img {
+    height: 90px;
+}
+
+.container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 20px;
+    border-radius: 10px;
+}
+
+h1 {
+    color: #ff0000; /* Red color for headings */
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+a {
+    color: #ff0000; /* Red color for links */
+    text-decoration: none;
+    font-weight: bold;
+    display: inline-block;
+    margin-top: 20px;
+    text-align: center;
+    width: 100%;
+}
+
+a:hover {
+    color: white;
+}
+
+form {
+    max-width: 500px;
+    margin: 20px auto;
+    padding: 20px;
+    border-radius: 10px;
+}
+
+form div {
+    margin-bottom: 15px;
+}
+
+form input[type="number"],
+form input[type="email"],
+form input[type="text"],
+form input[type="date"],
+form select,
+.StripeElement {
+    width: 100%;
+    padding: 10px;
+    margin-top: 5px;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+    box-sizing: border-box;
+    font-size: 16px;
+    color: black;
+    background-color: white; /* White background for fields */
+}
+
+form input::placeholder,
+form select::placeholder {
+    color: #aaa;
+}
+
+form input:focus::placeholder,
+form select:focus::placeholder {
+    color: transparent;
+}
+
+.StripeElement--focus {
+    border-color: #ff0000; /* Red border on focus */
+}
+
+form button {
+    background-color: #ff0000;
+    color: white;
+    padding: 10px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    width: 100%;
+    font-size: 16px;
+    font-weight: bold;
+}
+
+form button:hover {
+    background-color: #cc0000;
+}

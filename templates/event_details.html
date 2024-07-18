@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Event Details</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <style>
+        body {
+            background: url('{{ url_for('static', filename='background.jpg') }}') no-repeat center center fixed;
+            background-size: cover;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <img src="{{ url_for('static', filename='logo-final-el-pueblo-mex.png') }}" alt="El Pueblo Mexican Food">
+        <div id="et-top-navigation" data-height="115" data-fixed-height="40">
+            <nav id="top-menu-nav">
+                <ul id="top-menu" class="nav">
+                    <li class="menu-item">
+                        <a href="https://elpueblomex.com/">HOME</a>
+                    </li>
+                    <li class="menu-item">
+                        <a href="https://elpueblomex.com/menu/">MENU</a>
+                    </li>
+                    <li class="menu-item">
+                        <a href="https://elpueblomex.com/del-mar-bar/">BARS</a>
+                    </li>
+                    <li class="menu-item">
+                        <a href="https://elpueblomex.com/order-online-selection/">ORDER</a>
+                    </li>
+                    <li class="menu-item">
+                        <a href="https://elpueblomex.com/gallery/">GALLERY</a>
+                    </li>
+                    <li class="menu-item">
+                        <a href="https://elpueblomex.com/catering/">CATERING</a>
+                    </li>
+                    <li class="menu-item">
+                        <a href="https://elpueblomex.com/latest-news/">NEWS</a>
+                    </li>
+                    <li class="menu-item">
+                        <a href="https://elpueblomex.com/job-openings/">CAREERS</a>
+                    </li>
+                    <li class="menu-item menu-item-has-children">
+                        <a href="https://elpueblomex.com/locations/">LOCATIONS</a>
+                        <ul class="sub-menu">
+                            <li class="menu-item">
+                                <a href="https://elpueblomex.com/locations/el-pueblo-mexican-food-in-cardiff-by-the-sea/">CARDIFF-BY-THE-SEA</a>
+                            </li>
+                            <li class="menu-item">
+                                <a href="https://elpueblomex.com/locations/el-pueblo-mexican-food-in-carlsbad/">CARLSBAD</a>
+                            </li>
+                            <li class="menu-item">
+                                <a href="https://elpueblomex.com/locations/el-pueblo-mexican-food-in-carmel-valley/">CARMEL VALLEY</a>
+                            </li>
+                            <li class="menu-item">
+                                <a href="https://elpueblomex.com/locations/el-pueblo-mexican-food-in-del-mar/">DEL MAR</a>
+                            </li>
+                        </ul>
+                    </li>
+                    <li class="menu-item">
+                        <a href="https://elpueblomex.com/event-space-reservation/">RESERVE</a>
+                    </li>
+                    <li class="menu-item">
+                        <a href="https://elpueblomex.com/contact-us/">CONTACT</a>
+                    </li>
+                </ul>
+            </nav>
+        </div>
+    </div>
+    <div class="container">
+        <h1>Event Details</h1>
+        <form action="{{ url_for('event_details') }}" method="post">
+            <div>
+                <input type="number" id="people" name="people" placeholder="Number of People" required>
+            </div>
+            <div>
+                <input type="date" id="date" name="date" required>
+            </div>
+            <div>
+                <select id="time" name="time" required>
+                    <option value="" disabled selected>Select Time</option>
+                    <option value="09:00 AM">9:00 AM</option>
+                    <option value="10:00 AM">10:00 AM</option>
+                    <option value="11:00 AM">11:00 AM</option>
+                    <option value="12:00 PM">12:00 PM</option>
+                    <option value="01:00 PM">1:00 PM</option>
+                    <option value="02:00 PM">2:00 PM</option>
+                    <option value="03:00 PM">3:00 PM</option>
+                    <option value="04:00 PM">4:00 PM</option>
+                    <option value="05:00 PM">5:00 PM</option>
+                    <option value="06:00 PM">6:00 PM</option>
+                    <option value="07:00 PM">7:00 PM</option>
+                    <option value="08:00 PM">8:00 PM</option>
+                    <option value="09:00 PM">9:00 PM</option>
+                </select>
+            </div>
+            <button type="submit">Next</button>
+        </form>
+    </div>
+</body>
+</html>

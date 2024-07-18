@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Checkout</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <style>
+        body {
+            background: url('{{ url_for('static', filename='background.jpg') }}') no-repeat center center fixed;
+            background-size: cover;
+        }
+    </style>
+    <script src="https://js.stripe.com/v3/"></script>
+</head>
+<body>
+    <div class="header">
+        <img src="{{ url_for('static', filename='logo-final-el-pueblo-mex.png') }}" alt="El Pueblo Mexican Food">
+        <div id="et-top-navigation" data-height="115" data-fixed-height="40">
+            <nav id="top-menu-nav">
+                <ul id="top-menu" class="nav">
+                    <li class="menu-item">
+                        <a href="https://elpueblomex.com/">HOME</a>
+                    </li>
+                    <li class="menu-item">
+                        <a href="https://elpueblomex.com/menu/">MENU</a>
+                    </li>
+                    <li class="menu-item">
+                        <a href="https://elpueblomex.com/del-mar-bar/">BARS</a>
+                    </li>
+                    <li class="menu-item">
+                        <a href="https://elpueblomex.com/order-online-selection/">ORDER</a>
+                    </li>
+                    <li class="menu-item">
+                        <a href="https://elpueblomex.com/gallery/">GALLERY</a>
+                    </li>
+                    <li class="menu-item">
+                        <a href="https://elpueblomex.com/catering/">CATERING</a>
+                    </li>
+                    <li class="menu-item">
+                        <a href="https://elpueblomex.com/latest-news/">NEWS</a>
+                    </li>
+                    <li class="menu-item">
+                        <a href="https://elpueblomex.com/job-openings/">CAREERS</a>
+                    </li>
+                    <li class="menu-item menu-item-has-children">
+                        <a href="https://elpueblomex.com/locations/">LOCATIONS</a>
+                        <ul class="sub-menu">
+                            <li class="menu-item">
+                                <a href="https://elpueblomex.com/locations/el-pueblo-mexican-food-in-cardiff-by-the-sea/">CARDIFF-BY-THE-SEA</a>
+                            </li>
+                            <li class="menu-item">
+                                <a href="https://elpueblomex.com/locations/el-pueblo-mexican-food-in-carlsbad/">CARLSBAD</a>
+                            </li>
+                            <li class="menu-item">
+                                <a href="https://elpueblomex.com/locations/el-pueblo-mexican-food-in-carmel-valley/">CARMEL VALLEY</a>
+                            </li>
+                            <li class="menu-item">
+                                <a href="https://elpueblomex.com/locations/el-pueblo-mexican-food-in-del-mar/">DEL MAR</a>
+                            </li>
+                        </ul>
+                    </li>
+                    <li class="menu-item">
+                        <a href="https://elpueblomex.com/event-space-reservation/">RESERVE</a>
+                    </li>
+                    <li class="menu-item">
+                        <a href="https://elpueblomex.com/contact-us/">CONTACT</a>
+                    </li>
+                </ul>
+            </nav>
+        </div>
+    </div>
+    <div class="container">
+        <h1>Checkout</h1>
+        <div id="review-section">
+            <h2>Review Your Information</h2>
+            <p><strong>Number of People:</strong> <span id="review-people"></span></p>
+            <p><strong>Date:</strong> <span id="review-date"></span></p>
+            <p><strong>Time:</strong> <span id="review-time"></span></p>
+            <p><strong>Items:</strong> <span id="review-items"></span></p>
+            <p><strong>Total Amount:</strong> <span id="review-total-amount"></span></p>
+        </div>
+        <form id="payment-form">
+            <h2>Personal Details</h2>
+            <div>
+                <input type="text" id="first_name" name="first_name" placeholder="First Name" required>
+            </div>
+            <div>
+                <input type="text" id="last_name" name="last_name" placeholder="Last Name" required>
+            </div>
+            <div>
+                <input type="text" id="address" name="address" placeholder="Address" required>
+            </div>
+            <div>
+                <input type="text" id="city" name="city" placeholder="City" required>
+            </div>
+            <div>
+                <input type="text" id="state" name="state" placeholder="State" required>
+            </div>
+            <div>
+                <input type="text" id="zip" name="zip" placeholder="Zip Code" required>
+            </div>
+            <div>
+                <input type="text" id="phone" name="phone" placeholder="Phone Number" required>
+            </div>
+            <div>
+                <input type="email" id="email" name="email" placeholder="Email" required>
+            </div>
+            
+            <h2>Payment Information</h2>
+            <div id="card-element" class="StripeElement">
+                <!-- A Stripe Element will be inserted here. -->
+            </div>
+            <button type="submit">Pay</button>
+            <div id="payment-result"></div>
+        </form>
+
+        <script>
+            const stripe = Stripe('pk_test_51HMJ15LkC2vPsGwFMYXmeFGNUNJsj1AlY3kOTCa7Q17eJD4S7IL03uDnK2RhCWpaPjPHOSaP8XV5aXapc208xhOn00U58LdDFJ');  // Your Stripe public key
+            const elements = stripe.elements();
+            const cardElement = elements.create('card', {
+                style: {
+                    base: {
+                        color: '#32325d',
+                        fontFamily: 'Arial, sans-serif',
+                        fontSmoothing: 'antialiased',
+                        fontSize: '16px',
+                        '::placeholder': {
+                            color: '#aaa'
+                        }
+                    },
+                    invalid: {
+                        color: '#fa755a',
+                        iconColor: '#fa755a'
+                    }
+                }
+            });
+            cardElement.mount('#card-element');
+
+            // Populate review section with query parameters
+            const urlParams = new URLSearchParams(window.location.search);
+            document.getElementById('review-people').textContent = urlParams.get('people');
+            document.getElementById('review-date').textContent = urlParams.get('date');
+            document.getElementById('review-time').textContent = urlParams.get('time');
+            document.getElementById('review-items').textContent = JSON.parse(urlParams.get('items')).map(item => `${item.name} (x${item.quantity})`).join(', ');
+            document.getElementById('review-total-amount').textContent = `$${(urlParams.get('total_amount') / 100).toFixed(2)}`;
+
+            const form = document.getElementById('payment-form');
+            form.addEventListener('submit', async (event) => {
+                event.preventDefault();
+
+                const email = document.getElementById('email').value;
+                const firstName = document.getElementById('first_name').value;
+                const lastName = document.getElementById('last_name').value;
+                const address = document.getElementById('address').value;
+                const city = document.getElementById('city').value;
+                const state = document.getElementById('state').value;
+                const zip = document.getElementById('zip').value;
+                const phone = document.getElementById('phone').value;
+                const people = urlParams.get('people');
+                const date = urlParams.get('date');
+                const time = urlParams.get('time');
+                const items = JSON.parse(urlParams.get('items'));
+                const total_amount = urlParams.get('total_amount');
+
+                const response = await fetch(window.location.pathname + window.location.search, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        email: email,
+                        first_name: firstName,
+                        last_name: lastName,
+                        address: address,
+                        city: city,
+                        state: state,
+                        zip: zip,
+                        phone: phone,
+                        people: people,
+                        date: date,
+                        time: time,
+                        items: items,
+                        total_amount: total_amount
+                    })
+                });
+
+                const { clientSecret } = await response.json();
+
+                const { error, paymentIntent } = await stripe.confirmCardPayment(clientSecret, {
+                    payment_method: {
+                        card: cardElement,
+                        billing_details: {
+                            name: `${firstName} ${lastName}`,
+                            email: email,
+                            address: {
+                                line1: address,
+                                city: city,
+                                state: state,
+                                postal_code: zip
+                            },
+                            phone: phone
+                        }
+                    }
+                });
+
+                if (error) {
+                    document.getElementById('payment-result').textContent = error.message;
+                } else if (paymentIntent.status === 'succeeded') {
+                    document.getElementById('payment-result').textContent = 'Payment successful!';
+                    window.location.href = `/success?email=${encodeURIComponent(email)}&first_name=${encodeURIComponent(firstName)}&last_name=${encodeURIComponent(lastName)}&address=${encodeURIComponent(address)}&city=${encodeURIComponent(city)}&state=${encodeURIComponent(state)}&zip=${encodeURIComponent(zip)}&phone=${encodeURIComponent(phone)}&people=${encodeURIComponent(people)}&date=${encodeURIComponent(date)}&time=${encodeURIComponent(time)}&items=${encodeURIComponent(JSON.stringify(items))}&total_amount=${encodeURIComponent(total_amount)}`;
+                }
+            });
+        </script>
+    </div>
+</body>
+</html>
