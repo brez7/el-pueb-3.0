@@ -1,6 +1,7 @@
 {% extends "base.html" %} {% block title %}Home - El Pueblo Mexican Food{%
 endblock %} {% block content %}
 <div class="container" style="background: transparent;">
+  
   <h1 class="text-danger">Menu</h1>
   <form action="{{ url_for('menu', people=request.args['people'], date=request.args['date'], time=request.args['time']) }}" method="post">
     <div class="form-group">
