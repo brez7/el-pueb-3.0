@@ -1,8 +1,9 @@
-{% extends "base.html" %} {% block title %}Home - El Pueblo Mexican Food{%
-endblock %} {% block content %}
- 
+{% extends "base.html" %}
+
+{% block title %}Home - El Pueblo Mexican Food{% endblock %}
+
+{% block content %}
 <div class="container" style="background: transparent;">
-  
   <h1 class="text-danger">Checkout</h1>
   <div id="review-section">
     <h2 class="text-danger">Review Your Information</h2>
@@ -94,6 +95,7 @@ endblock %} {% block content %}
       const time = urlParams.get('time');
       const items = JSON.parse(urlParams.get('items'));
       const total_amount = urlParams.get('total_amount');
+      const base_amount = urlParams.get('base_amount');
 
       const response = await fetch(window.location.pathname + window.location.search, {
         method: 'POST',
@@ -111,7 +113,8 @@ endblock %} {% block content %}
           date: date,
           time: time,
           items: items,
-          total_amount: total_amount
+          total_amount: total_amount,
+          base_amount: base_amount
         })
       });
 
@@ -138,11 +141,9 @@ endblock %} {% block content %}
         document.getElementById('payment-result').textContent = error.message;
       } else if (paymentIntent.status === 'succeeded') {
         document.getElementById('payment-result').textContent = 'Payment successful!';
-        window.location.href = `/success?email=${encodeURIComponent(email)}&first_name=${encodeURIComponent(firstName)}&last_name=${encodeURIComponent(lastName)}&address=${encodeURIComponent(address)}&city=${encodeURIComponent(city)}&state=${encodeURIComponent(state)}&zip=${encodeURIComponent(zip)}&phone=${encodeURIComponent(phone)}&people=${encodeURIComponent(people)}&date=${encodeURIComponent(date)}&time=${encodeURIComponent(time)}&items=${encodeURIComponent(JSON.stringify(items))}&total_amount=${encodeURIComponent(total_amount)}`;
+        window.location.href = `/summary?email=${encodeURIComponent(email)}&first_name=${encodeURIComponent(firstName)}&last_name=${encodeURIComponent(lastName)}&address=${encodeURIComponent(address)}&city=${encodeURIComponent(city)}&state=${encodeURIComponent(state)}&zip=${encodeURIComponent(zip)}&phone=${encodeURIComponent(phone)}&people=${encodeURIComponent(people)}&date=${encodeURIComponent(date)}&time=${encodeURIComponent(time)}&items=${encodeURIComponent(JSON.stringify(items))}&total_amount=${encodeURIComponent(total_amount)}&base_amount=${encodeURIComponent(base_amount)}`;
       }
     });
   </script>
 </div>
-
- 
 {% endblock %}
