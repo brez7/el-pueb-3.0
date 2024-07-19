@@ -1,8 +1,15 @@
-{% extends "base.html" %} {% block title %}Home - El Pueblo Mexican Food{%
-endblock %} {% block content %}
+{% extends "base.html" %}
+
+{% block title %}Menu - El Pueblo Mexican Food{% endblock %}
+
+{% block content %}
 <div class="container" style="background: transparent;">
-  
   <h1 class="text-danger">Menu</h1>
+  
+  <!-- Display the base amount for catering -->
+  <p>Total number of people: {{ people }}</p>
+  <p>Base amount for catering: ${{ base_amount }}</p>
+
   <form action="{{ url_for('menu', people=request.args['people'], date=request.args['date'], time=request.args['time']) }}" method="post">
     <div class="form-group">
       <label for="item1">Item 1</label>
@@ -15,6 +22,4 @@ endblock %} {% block content %}
     <button type="submit" class="btn btn-primary">Checkout</button>
   </form>
 </div>
-
- 
 {% endblock %}

@@ -50,10 +50,11 @@ def menu():
             },
         ]
         total_amount = sum(item["price"] * item["quantity"] for item in items)
-        people = request.args["people"]
+        people = int(request.args["people"])
         date = request.args["date"]
         time = request.args["time"]
-        base_amount = int(people) * 18 * 100
+        base_amount = people * 18 * 100  # Calculate base amount in cents
+
         return redirect(
             url_for(
                 "checkout",
@@ -65,9 +66,7 @@ def menu():
                 items=json.dumps(items),
             )
         )
-    people = request.args.get("people")
-    base_amount = int(people) * 18 * 100
-    return render_template("menu.html", people=people, base_amount=base_amount)
+    return render_template("menu.html")
 
 
 @app.route("/checkout", methods=["GET", "POST"])
@@ -86,110 +85,52 @@ def checkout():
     items = json.loads(request.args.get("items"))
     total_amount = int(request.args.get("total_amount"))
     base_amount = int(request.args.get("base_amount"))
-    people = int(request.args.get("people"))
-    date = request.args.get("date")
-    time = request.args.get("time")
-
     return render_template(
-        "checkout.html",
-        items=items,
-        total_amount=total_amount,
-        base_amount=base_amount,
-        people=people,
-        date=date,
-        time=time,
+        "checkout.html", items=items, total_amount=total_amount, base_amount=base_amount
     )
 
 
 @app.route("/success")
 def success():
-    return redirect(
-        url_for(
-            "summary",
-            email=request.args.get("email"),
-            first_name=request.args.get("first_name"),
-            last_name=request.args.get("last_name"),
-            address=request.args.get("address"),
-            city=request.args.get("city"),
-            state=request.args.get("state"),
-            zip=request.args.get("zip"),
-            phone=request.args.get("phone"),
-            people=request.args.get("people"),
-            date=request.args.get("date"),
-            time=request.args.get("time"),
-            items=request.args.get("items"),
-            total_amount=request.args.get("total_amount"),
-            base_amount=request.args.get("base_amount"),
-        )
+    people = request.args.get("people")
+    date = request.args.get("date")
+    time = request.args.get("time")
+    items = json.loads(request.args.get("items"))
+    total_amount = int(request.args.get("total_amount"))
+    base_amount = int(request.args.get("base_amount"))
+    customer_email = request.args.get("email")
+
+    order_details = f"Order Details:\nPeople: {people}\nDate: {date}\nTime: {time}\n"
+    for item in items:
+        order_details += f"{item}\n"
+    order_details += f"Total Amount: ${total_amount / 100:.2f}\nBase Amount: ${base_amount / 100:.2f}\nGrand Total: ${(total_amount + base_amount) / 100:.2f}"
+
+    msg_to_restaurant = Message(
+        "New Catering Order",
+        sender="rbresnik@gmail.com",
+        recipients=["rob@elpueblomex.com"],
     )
+    msg_to_restaurant.body = order_details
+    mail.send(msg_to_restaurant)
 
+    msg_to_customer = Message(
+        "Your Catering Order Confirmation",
+        sender="rbresnik@gmail.com",
+        recipients=[customer_email],
+    )
+    msg_to_customer.body = f"Thank you for your order!\n\n{order_details}"
+    mail.send(msg_to_customer)
 
-@app.route("/summary")
-def summary():
-    try:
-        people = request.args.get("people")
-        date = request.args.get("date")
-        time = request.args.get("time")
-        address = request.args.get("address")
-        city = request.args.get("city")
-        state = request.args.get("state")
-        zip_code = request.args.get("zip")
-        phone = request.args.get("phone")
-        email = request.args.get("email")
-        items = json.loads(request.args.get("items"))
-        total_amount = int(request.args.get("total_amount"))
-        base_amount = int(request.args.get("base_amount"))
-
-        grand_total = total_amount + base_amount
-
-        order_details = (
-            f"Order Details:\nPeople: {people}\nDate: {date}\nTime: {time}\n"
-            f"Address: {address}, {city}, {state} {zip_code}\nPhone: {phone}\nEmail: {email}\nItems:\n"
-            + "\n".join(
-                [
-                    f"{item['name']} (x{item['quantity']}) - ${item['price'] / 100}"
-                    for item in items
-                ]
-            )
-            + f"\nTotal Amount for Selected Items: ${total_amount / 100:.2f}"
-            + f"\nBase Amount for Catering: ${base_amount / 100:.2f}"
-            + f"\nGrand Total: ${grand_total / 100:.2f}"
-        )
-
-        msg_to_restaurant = Message(
-            "New Catering Order",
-            sender="rbresnik@gmail.com",
-            recipients=["rob@elpueblomex.com"],
-        )
-        msg_to_restaurant.body = order_details
-        mail.send(msg_to_restaurant)
-
-        msg_to_customer = Message(
-            "Your Catering Order Confirmation",
-            sender="rbresnik@gmail.com",
-            recipients=[email],
-        )
-        msg_to_customer.body = f"Thank you for your order!\n\n{order_details}"
-        mail.send(msg_to_customer)
-
-        return render_template(
-            "summary.html",
-            people=people,
-            date=date,
-            time=time,
-            address=address,
-            city=city,
-            state=state,
-            zip_code=zip_code,
-            phone=phone,
-            email=email,
-            items=items,
-            total_amount=total_amount,
-            base_amount=base_amount,
-            grand_total=grand_total,
-        )
-    except Exception as e:
-        return str(e), 500
+    return render_template(
+        "summary.html",
+        people=people,
+        date=date,
+        time=time,
+        items=items,
+        total_amount=total_amount,
+        base_amount=base_amount,
+        email=customer_email,
+    )
 
 
 if __name__ == "__main__":

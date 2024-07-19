@@ -1,7 +1,5 @@
-{% extends "base.html" %}
-
-{% block title %}Home - El Pueblo Mexican Food{% endblock %}
-
+{% extends "base.html" %} 
+{% block title %}Checkout - El Pueblo Mexican Food{% endblock %} 
 {% block content %}
 <div class="container" style="background: transparent;">
   <h1 class="text-danger">Checkout</h1>
@@ -11,7 +9,9 @@
     <p><strong>Date:</strong> <span id="review-date"></span></p>
     <p><strong>Time:</strong> <span id="review-time"></span></p>
     <p><strong>Items:</strong> <span id="review-items"></span></p>
-    <p><strong>Total Amount:</strong> <span id="review-total-amount"></span></p>
+    <p><strong>Total Amount for Selected Items:</strong> $<span id="review-total-amount"></span></p>
+    <p><strong>Base Amount for Catering:</strong> $<span id="review-base-amount"></span></p>
+    <p><strong>Grand Total:</strong> $<span id="review-grand-total"></span></p>
   </div>
   <form id="payment-form">
     <h2 class="text-danger">Personal Details</h2>
@@ -72,11 +72,22 @@
 
     // Populate review section with query parameters
     const urlParams = new URLSearchParams(window.location.search);
-    document.getElementById('review-people').textContent = urlParams.get('people');
-    document.getElementById('review-date').textContent = urlParams.get('date');
-    document.getElementById('review-time').textContent = urlParams.get('time');
-    document.getElementById('review-items').textContent = JSON.parse(urlParams.get('items')).map(item => `${item.name} (x${item.quantity})`).join(', ');
-    document.getElementById('review-total-amount').textContent = `$${(urlParams.get('total_amount') / 100).toFixed(2)}`;
+
+    const reviewPeople = document.getElementById('review-people');
+    const reviewDate = document.getElementById('review-date');
+    const reviewTime = document.getElementById('review-time');
+    const reviewItems = document.getElementById('review-items');
+    const reviewTotalAmount = document.getElementById('review-total-amount');
+    const reviewBaseAmount = document.getElementById('review-base-amount');
+    const reviewGrandTotal = document.getElementById('review-grand-total');
+
+    if (reviewPeople) reviewPeople.textContent = urlParams.get('people');
+    if (reviewDate) reviewDate.textContent = urlParams.get('date');
+    if (reviewTime) reviewTime.textContent = urlParams.get('time');
+    if (reviewItems) reviewItems.textContent = JSON.parse(urlParams.get('items')).map(item => `${item.name} (x${item.quantity})`).join(', ');
+    if (reviewTotalAmount) reviewTotalAmount.textContent = `$${(parseInt(urlParams.get('total_amount')) / 100).toFixed(2)}`;
+    if (reviewBaseAmount) reviewBaseAmount.textContent = `$${(parseInt(urlParams.get('base_amount')) / 100).toFixed(2)}`;
+    if (reviewGrandTotal) reviewGrandTotal.textContent = `$${((parseInt(urlParams.get('total_amount')) + parseInt(urlParams.get('base_amount'))) / 100).toFixed(2)}`;
 
     const form = document.getElementById('payment-form');
     form.addEventListener('submit', async (event) => {
@@ -141,9 +152,10 @@
         document.getElementById('payment-result').textContent = error.message;
       } else if (paymentIntent.status === 'succeeded') {
         document.getElementById('payment-result').textContent = 'Payment successful!';
-        window.location.href = `/summary?email=${encodeURIComponent(email)}&first_name=${encodeURIComponent(firstName)}&last_name=${encodeURIComponent(lastName)}&address=${encodeURIComponent(address)}&city=${encodeURIComponent(city)}&state=${encodeURIComponent(state)}&zip=${encodeURIComponent(zip)}&phone=${encodeURIComponent(phone)}&people=${encodeURIComponent(people)}&date=${encodeURIComponent(date)}&time=${encodeURIComponent(time)}&items=${encodeURIComponent(JSON.stringify(items))}&total_amount=${encodeURIComponent(total_amount)}&base_amount=${encodeURIComponent(base_amount)}`;
+        window.location.href = `/success?email=${encodeURIComponent(email)}&first_name=${encodeURIComponent(firstName)}&last_name=${encodeURIComponent(lastName)}&address=${encodeURIComponent(address)}&city=${encodeURIComponent(city)}&state=${encodeURIComponent(state)}&zip=${encodeURIComponent(zip)}&phone=${encodeURIComponent(phone)}&people=${encodeURIComponent(people)}&date=${encodeURIComponent(date)}&time=${encodeURIComponent(time)}&items=${encodeURIComponent(JSON.stringify(items))}&total_amount=${encodeURIComponent(total_amount)}&base_amount=${encodeURIComponent(base_amount)}`;
       }
     });
   </script>
 </div>
+
 {% endblock %}
