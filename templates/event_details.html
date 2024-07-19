@@ -2,16 +2,15 @@
 endblock %} {% block content %}
 
 <div class="container" style="background: transparent;">
- 
-
-  
   <h1 class="text-danger">Event Details</h1>
   <form action="{{ url_for('event_details') }}" method="post">
     <div class="form-group">
       <input type="number" class="form-control" id="people" name="people" placeholder="Number of People" required>
+      <small id="peopleHelp" class="form-text"></small>
     </div>
     <div class="form-group">
       <input type="date" class="form-control" id="date" name="date" required>
+      <small id="dateHelp" class="form-text"></small>
     </div>
     <div class="form-group">
       <select class="form-control" id="time" name="time" required>
@@ -34,5 +33,43 @@ endblock %} {% block content %}
     <button type="submit" class="btn btn-primary">Next</button>
   </form>
 </div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', (event) => {
+    const peopleInput = document.getElementById('people');
+    const peopleHelp = document.getElementById('peopleHelp');
+    const dateInput = document.getElementById('date');
+    const dateHelp = document.getElementById('dateHelp');
+
+    peopleInput.addEventListener('input', () => {
+      if (peopleInput.value < 30) {
+        peopleHelp.textContent = 'The number of people must be at least 30.';
+        peopleHelp.style.color = 'white';
+        peopleInput.setCustomValidity('The number of people must be at least 30.');
+      } else {
+        peopleHelp.textContent = '';
+        peopleInput.setCustomValidity('');
+      }
+    });
+
+    // Restrict the date picker to prevent past dates and dates within the next 48 hours
+    const today = new Date();
+    const minDate = new Date(today.getTime() + 48 * 60 * 60 * 1000);
+    const formattedMinDate = minDate.toISOString().split('T')[0];
+    dateInput.min = formattedMinDate;
+
+    dateInput.addEventListener('input', () => {
+      if (new Date(dateInput.value) < minDate) {
+        dateHelp.textContent = 'The date must be at least 48 hours from now.';
+        dateHelp.style.color = 'white';
+        dateInput.setCustomValidity('The date must be at least 48 hours from now.');
+      } else {
+        dateHelp.textContent = '';
+        dateInput.setCustomValidity('');
+      }
+    });
+  });
+</script>
+
 
 {% endblock %}
