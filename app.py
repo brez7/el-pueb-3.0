@@ -50,11 +50,10 @@ def menu():
             },
         ]
         total_amount = sum(item["price"] * item["quantity"] for item in items)
-        people = int(request.args["people"])
+        people = request.args["people"]
         date = request.args["date"]
         time = request.args["time"]
-        base_amount = people * 18 * 100  # Calculate base amount in cents
-
+        base_amount = int(people) * 18 * 100  # Base amount calculation
         return redirect(
             url_for(
                 "checkout",
@@ -66,7 +65,9 @@ def menu():
                 items=json.dumps(items),
             )
         )
-    return render_template("menu.html")
+    people = request.args.get("people", 0)
+    base_amount = int(people) * 18  # Base amount calculation
+    return render_template("menu.html", people=people, base_amount=base_amount)
 
 
 @app.route("/checkout", methods=["GET", "POST"])
