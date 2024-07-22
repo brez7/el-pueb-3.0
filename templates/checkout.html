@@ -1,7 +1,6 @@
-{% extends "base.html" %} 
-{% block title %}Checkout - El Pueblo Mexican Food{% endblock %} 
-{% block content %}
-<div class="container" style="background: transparent;">
+{% extends "base.html" %} {% block title %}Checkout - El Pueblo Mexican Food{%
+endblock %} {% block content %}
+<div class="container" style="background: transparent">
   <h1 class="text-danger">Checkout</h1>
   <div id="review-section">
     <h2 class="text-danger">Review Your Information</h2>
@@ -9,37 +8,101 @@
     <p><strong>Date:</strong> <span id="review-date"></span></p>
     <p><strong>Time:</strong> <span id="review-time"></span></p>
     <p><strong>Items:</strong> <span id="review-items"></span></p>
-    <p><strong>Total Amount for Selected Items:</strong> $<span id="review-total-amount"></span></p>
-    <p><strong>Base Amount for Catering:</strong> $<span id="review-base-amount"></span></p>
+    <p>
+      <strong>Total Amount for Selected Items:</strong> $<span
+        id="review-total-amount"
+      ></span>
+    </p>
+    <p>
+      <strong>Base Amount for Catering:</strong> $<span
+        id="review-base-amount"
+      ></span>
+    </p>
     <p><strong>Grand Total:</strong> $<span id="review-grand-total"></span></p>
   </div>
   <form id="payment-form">
     <h2 class="text-danger">Personal Details</h2>
     <div class="form-group">
-      <input type="text" class="form-control" id="first_name" name="first_name" placeholder="First Name" required>
+      <input
+        type="text"
+        class="form-control"
+        id="first_name"
+        name="first_name"
+        placeholder="First Name"
+        required
+      />
     </div>
     <div class="form-group">
-      <input type="text" class="form-control" id="last_name" name="last_name" placeholder="Last Name" required>
+      <input
+        type="text"
+        class="form-control"
+        id="last_name"
+        name="last_name"
+        placeholder="Last Name"
+        required
+      />
     </div>
     <div class="form-group">
-      <input type="text" class="form-control" id="address" name="address" placeholder="Address" required>
+      <input
+        type="text"
+        class="form-control"
+        id="address"
+        name="address"
+        placeholder="Address"
+        required
+      />
     </div>
     <div class="form-group">
-      <input type="text" class="form-control" id="city" name="city" placeholder="City" required>
+      <input
+        type="text"
+        class="form-control"
+        id="city"
+        name="city"
+        placeholder="City"
+        required
+      />
     </div>
     <div class="form-group">
-      <input type="text" class="form-control" id="state" name="state" placeholder="State" required>
+      <input
+        type="text"
+        class="form-control"
+        id="state"
+        name="state"
+        placeholder="State"
+        required
+      />
     </div>
     <div class="form-group">
-      <input type="text" class="form-control" id="zip" name="zip" placeholder="Zip Code" required>
+      <input
+        type="text"
+        class="form-control"
+        id="zip"
+        name="zip"
+        placeholder="Zip Code"
+        required
+      />
     </div>
     <div class="form-group">
-      <input type="text" class="form-control" id="phone" name="phone" placeholder="Phone Number" required>
+      <input
+        type="text"
+        class="form-control"
+        id="phone"
+        name="phone"
+        placeholder="Phone Number"
+        required
+      />
     </div>
     <div class="form-group">
-      <input type="email" class="form-control" id="email" name="email" placeholder="Email" required>
+      <input
+        type="email"
+        class="form-control"
+        id="email"
+        name="email"
+        placeholder="Email"
+        required
+      />
     </div>
-    
+
     <h2 class="text-danger">Payment Information</h2>
     <div id="card-element" class="StripeElement">
       <!-- A Stripe Element will be inserted here. -->
@@ -49,113 +112,128 @@
   </form>
 
   <script>
-    const stripe = Stripe('pk_test_51HMJ15LkC2vPsGwFMYXmeFGNUNJsj1AlY3kOTCa7Q17eJD4S7IL03uDnK2RhCWpaPjPHOSaP8XV5aXapc208xhOn00U58LdDFJ');  // Your Stripe public key
+    const stripe = Stripe(
+      "pk_test_51HMJ15LkC2vPsGwFMYXmeFGNUNJsj1AlY3kOTCa7Q17eJD4S7IL03uDnK2RhCWpaPjPHOSaP8XV5aXapc208xhOn00U58LdDFJ"
+    ); // Your Stripe public key
     const elements = stripe.elements();
-    const cardElement = elements.create('card', {
+    const cardElement = elements.create("card", {
       style: {
         base: {
-          color: '#32325d',
-          fontFamily: 'Arial, sans-serif',
-          fontSmoothing: 'antialiased',
-          fontSize: '16px',
-          '::placeholder': {
-            color: '#aaa'
-          }
+          color: "#32325d",
+          fontFamily: "Arial, sans-serif",
+          fontSmoothing: "antialiased",
+          fontSize: "16px",
+          "::placeholder": {
+            color: "#aaa",
+          },
         },
         invalid: {
-          color: '#fa755a',
-          iconColor: '#fa755a'
-        }
-      }
+          color: "#fa755a",
+          iconColor: "#fa755a",
+        },
+      },
     });
-    cardElement.mount('#card-element');
+    cardElement.mount("#card-element");
 
     // Populate review section with query parameters
     const urlParams = new URLSearchParams(window.location.search);
+    const reviewPeople = document.getElementById("review-people");
+    const reviewDate = document.getElementById("review-date");
+    const reviewTime = document.getElementById("review-time");
+    const reviewItems = document.getElementById("review-items");
+    const reviewTotalAmount = document.getElementById("review-total-amount");
+    const reviewBaseAmount = document.getElementById("review-base-amount");
+    const reviewGrandTotal = document.getElementById("review-grand-total");
 
-    const reviewPeople = document.getElementById('review-people');
-    const reviewDate = document.getElementById('review-date');
-    const reviewTime = document.getElementById('review-time');
-    const reviewItems = document.getElementById('review-items');
-    const reviewTotalAmount = document.getElementById('review-total-amount');
-    const reviewBaseAmount = document.getElementById('review-base-amount');
-    const reviewGrandTotal = document.getElementById('review-grand-total');
+    if (reviewPeople) reviewPeople.textContent = urlParams.get("people");
+    if (reviewDate) reviewDate.textContent = urlParams.get("date");
+    if (reviewTime) reviewTime.textContent = urlParams.get("time");
+    if (reviewItems)
+      reviewItems.textContent = JSON.parse(urlParams.get("items"))
+        .map(item => `${item.name} (x${item.quantity})`)
+        .join(", ");
+    if (reviewTotalAmount)
+      reviewTotalAmount.textContent = (
+        parseInt(urlParams.get("total_amount")) / 100
+      ).toFixed(2);
+    if (reviewBaseAmount)
+      reviewBaseAmount.textContent = (
+        parseInt(urlParams.get("base_amount")) / 100
+      ).toFixed(2);
+    if (reviewGrandTotal)
+      reviewGrandTotal.textContent = (
+        (parseInt(urlParams.get("total_amount")) +
+          parseInt(urlParams.get("base_amount"))) /
+        100
+      ).toFixed(2);
+const form = document.getElementById('payment-form');
+form.addEventListener('submit', async (event) => {
+  event.preventDefault();
 
-    if (reviewPeople) reviewPeople.textContent = urlParams.get('people');
-    if (reviewDate) reviewDate.textContent = urlParams.get('date');
-    if (reviewTime) reviewTime.textContent = urlParams.get('time');
-    if (reviewItems) reviewItems.textContent = JSON.parse(urlParams.get('items')).map(item => `${item.name} (x${item.quantity})`).join(', ');
-    if (reviewTotalAmount) reviewTotalAmount.textContent = `$${(parseInt(urlParams.get('total_amount')) / 100).toFixed(2)}`;
-    if (reviewBaseAmount) reviewBaseAmount.textContent = `$${(parseInt(urlParams.get('base_amount')) / 100).toFixed(2)}`;
-    if (reviewGrandTotal) reviewGrandTotal.textContent = `$${((parseInt(urlParams.get('total_amount')) + parseInt(urlParams.get('base_amount'))) / 100).toFixed(2)}`;
+  const email = document.getElementById('email').value;
+  const firstName = document.getElementById('first_name').value;
+  const lastName = document.getElementById('last_name').value;
+  const address = document.getElementById('address').value;
+  const city = document.getElementById('city').value;
+  const state = document.getElementById('state').value;
+  const zip = document.getElementById('zip').value;
+  const phone = document.getElementById('phone').value;
+  const people = urlParams.get('people');
+  const date = urlParams.get('date');
+  const time = urlParams.get('time');
+  const items = JSON.parse(urlParams.get('items'));
+  const total_amount = parseInt(urlParams.get('total_amount'));  // Convert to integer
+  const base_amount = parseInt(urlParams.get('base_amount'));    // Convert to integer
 
-    const form = document.getElementById('payment-form');
-    form.addEventListener('submit', async (event) => {
-      event.preventDefault();
+  const response = await fetch(window.location.pathname + window.location.search, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      email: email,
+      first_name: firstName,
+      last_name: lastName,
+      address: address,
+      city: city,
+      state: state,
+      zip: zip,
+      phone: phone,
+      people: people,
+      date: date,
+      time: time,
+      items: items,
+      total_amount: total_amount,
+      base_amount: base_amount
+    })
+  });
 
-      const email = document.getElementById('email').value;
-      const firstName = document.getElementById('first_name').value;
-      const lastName = document.getElementById('last_name').value;
-      const address = document.getElementById('address').value;
-      const city = document.getElementById('city').value;
-      const state = document.getElementById('state').value;
-      const zip = document.getElementById('zip').value;
-      const phone = document.getElementById('phone').value;
-      const people = urlParams.get('people');
-      const date = urlParams.get('date');
-      const time = urlParams.get('time');
-      const items = JSON.parse(urlParams.get('items'));
-      const total_amount = urlParams.get('total_amount');
-      const base_amount = urlParams.get('base_amount');
+  const { clientSecret } = await response.json();
 
-      const response = await fetch(window.location.pathname + window.location.search, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          email: email,
-          first_name: firstName,
-          last_name: lastName,
-          address: address,
+  const { error, paymentIntent } = await stripe.confirmCardPayment(clientSecret, {
+    payment_method: {
+      card: cardElement,
+      billing_details: {
+        name: `${firstName} ${lastName}`,
+        email: email,
+        address: {
+          line1: address,
           city: city,
           state: state,
-          zip: zip,
-          phone: phone,
-          people: people,
-          date: date,
-          time: time,
-          items: items,
-          total_amount: total_amount,
-          base_amount: base_amount
-        })
-      });
-
-      const { clientSecret } = await response.json();
-
-      const { error, paymentIntent } = await stripe.confirmCardPayment(clientSecret, {
-        payment_method: {
-          card: cardElement,
-          billing_details: {
-            name: `${firstName} ${lastName}`,
-            email: email,
-            address: {
-              line1: address,
-              city: city,
-              state: state,
-              postal_code: zip
-            },
-            phone: phone
-          }
-        }
-      });
-
-      if (error) {
-        document.getElementById('payment-result').textContent = error.message;
-      } else if (paymentIntent.status === 'succeeded') {
-        document.getElementById('payment-result').textContent = 'Payment successful!';
-        window.location.href = `/success?email=${encodeURIComponent(email)}&first_name=${encodeURIComponent(firstName)}&last_name=${encodeURIComponent(lastName)}&address=${encodeURIComponent(address)}&city=${encodeURIComponent(city)}&state=${encodeURIComponent(state)}&zip=${encodeURIComponent(zip)}&phone=${encodeURIComponent(phone)}&people=${encodeURIComponent(people)}&date=${encodeURIComponent(date)}&time=${encodeURIComponent(time)}&items=${encodeURIComponent(JSON.stringify(items))}&total_amount=${encodeURIComponent(total_amount)}&base_amount=${encodeURIComponent(base_amount)}`;
+          postal_code: zip
+        },
+        phone: phone
       }
-    });
+    }
+  });
+
+  if (error) {
+    document.getElementById('payment-result').textContent = error.message;
+  } else if (paymentIntent.status === 'succeeded') {
+    document.getElementById('payment-result').textContent = 'Payment successful!';
+    window.location.href = `/success?email=${encodeURIComponent(email)}&first_name=${encodeURIComponent(firstName)}&last_name=${encodeURIComponent(lastName)}&address=${encodeURIComponent(address)}&city=${encodeURIComponent(city)}&state=${encodeURIComponent(state)}&zip=${encodeURIComponent(zip)}&phone=${encodeURIComponent(phone)}&people=${encodeURIComponent(people)}&date=${encodeURIComponent(date)}&time=${encodeURIComponent(time)}&items=${encodeURIComponent(JSON.stringify(items))}&total_amount=${encodeURIComponent(total_amount)}&base_amount=${encodeURIComponent(base_amount)}`;
+  }
+});
+
+   
   </script>
 </div>
-
 {% endblock %}

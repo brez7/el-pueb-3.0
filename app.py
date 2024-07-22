@@ -37,23 +37,25 @@ def event_details():
 @app.route("/menu", methods=["GET", "POST"])
 def menu():
     if request.method == "POST":
+        meat1 = request.form.get("meat1")
+        meat2 = request.form.get("meat2")
         items = [
             {
-                "name": "item1",
+                "name": meat1,
                 "price": 2000,
-                "quantity": int(request.form.get("item1_quantity", 0)),
+                "quantity": 1,
             },
             {
-                "name": "item2",
-                "price": 3000,
-                "quantity": int(request.form.get("item2_quantity", 0)),
+                "name": meat2,
+                "price": 2000,
+                "quantity": 1,
             },
         ]
         total_amount = sum(item["price"] * item["quantity"] for item in items)
         people = request.args["people"]
         date = request.args["date"]
         time = request.args["time"]
-        base_amount = int(people) * 18 * 100  # Base amount calculation
+        base_amount = int(people) * 1800  # Base amount calculation
         return redirect(
             url_for(
                 "checkout",
@@ -65,8 +67,8 @@ def menu():
                 items=json.dumps(items),
             )
         )
-    people = request.args.get("people", 0)
-    base_amount = int(people) * 18  # Base amount calculation
+    people = request.args.get("people")
+    base_amount = int(people) * 1800
     return render_template("menu.html", people=people, base_amount=base_amount)
 
 
@@ -75,63 +77,98 @@ def checkout():
     if request.method == "POST":
         data = request.get_json()
         total_amount = int(data["total_amount"])
-        base_amount = int(data["base_amount"])
+        base_amount = int(
+            data["base_amount"]
+        )  # Ensure base_amount is also converted to int
         payment_intent = stripe.PaymentIntent.create(
-            amount=total_amount + base_amount,
+            amount=total_amount,
             currency="usd",
             payment_method_types=["card"],
         )
         return jsonify({"clientSecret": payment_intent["client_secret"]})
 
-    items = json.loads(request.args.get("items"))
-    total_amount = int(request.args.get("total_amount"))
-    base_amount = int(request.args.get("base_amount"))
-    return render_template(
-        "checkout.html", items=items, total_amount=total_amount, base_amount=base_amount
-    )
-
-
-@app.route("/success")
-def success():
+    # Convert query parameters to integers before passing to template
     people = request.args.get("people")
     date = request.args.get("date")
     time = request.args.get("time")
     items = json.loads(request.args.get("items"))
-    total_amount = int(request.args.get("total_amount"))
-    base_amount = int(request.args.get("base_amount"))
-    customer_email = request.args.get("email")
-
-    order_details = f"Order Details:\nPeople: {people}\nDate: {date}\nTime: {time}\n"
-    for item in items:
-        order_details += f"{item}\n"
-    order_details += f"Total Amount: ${total_amount / 100:.2f}\nBase Amount: ${base_amount / 100:.2f}\nGrand Total: ${(total_amount + base_amount) / 100:.2f}"
-
-    msg_to_restaurant = Message(
-        "New Catering Order",
-        sender="rbresnik@gmail.com",
-        recipients=["rob@elpueblomex.com"],
-    )
-    msg_to_restaurant.body = order_details
-    mail.send(msg_to_restaurant)
-
-    msg_to_customer = Message(
-        "Your Catering Order Confirmation",
-        sender="rbresnik@gmail.com",
-        recipients=[customer_email],
-    )
-    msg_to_customer.body = f"Thank you for your order!\n\n{order_details}"
-    mail.send(msg_to_customer)
+    total_amount = int(request.args.get("total_amount"))  # Convert total_amount to int
+    base_amount = int(request.args.get("base_amount"))  # Convert base_amount to int
 
     return render_template(
-        "summary.html",
+        "checkout.html",
         people=people,
         date=date,
         time=time,
         items=items,
         total_amount=total_amount,
         base_amount=base_amount,
-        email=customer_email,
     )
+
+
+@app.route("/success")
+def success():
+    # Retrieve order details from query parameters
+    people = request.args.get("people")
+    date = request.args.get("date")
+    time = request.args.get("time")
+    items = json.loads(request.args.get("items"))
+    total_amount = request.args.get("total_amount")
+    base_amount = request.args.get("base_amount")
+    meat1 = request.args.get("meat1")
+    meat2 = request.args.get("meat2")
+    customer_email = request.args.get("email")
+
+    # Prepare email content
+    order_details = {
+        "people": people,
+        "date": date,
+        "time": time,
+        "items": items,
+        "total_amount": total_amount,
+        "base_amount": base_amount,
+        "meat1": meat1,
+        "meat2": meat2,
+        "customer_email": customer_email,
+    }
+
+    # Send email to the restaurant
+    msg_to_restaurant = Message(
+        "New Catering Order",
+        sender="rbresnik@gmail.com",
+        recipients=["rob@elpueblomex.com"],
+    )
+    msg_to_restaurant.body = (
+        f"Order Details:\nPeople: {people}\nDate: {date}\nTime: {time}\n"
+    )
+    for item in items:
+        msg_to_restaurant.body += (
+            f"{item['name']} (x{item['quantity']}) - ${item['price'] / 100:.2f}\n"
+        )
+    msg_to_restaurant.body += f"Total Amount: ${int(total_amount) / 100:.2f}\n"
+    msg_to_restaurant.body += f"Base Amount: ${int(base_amount) / 100:.2f}\n"
+    msg_to_restaurant.body += f"First Meat Choice: {meat1}\n"
+    msg_to_restaurant.body += f"Second Meat Choice: {meat2}\n"
+    mail.send(msg_to_restaurant)
+
+    # Send email to the customer
+    msg_to_customer = Message(
+        "Your Catering Order Confirmation",
+        sender="rbresnik@gmail.com",
+        recipients=[customer_email],
+    )
+    msg_to_customer.body = f"Thank you for your order!\n\nOrder Details:\nPeople: {people}\nDate: {date}\nTime: {time}\n"
+    for item in items:
+        msg_to_customer.body += (
+            f"{item['name']} (x{item['quantity']}) - ${item['price'] / 100:.2f}\n"
+        )
+    msg_to_customer.body += f"Total Amount: ${int(total_amount) / 100:.2f}\n"
+    msg_to_customer.body += f"Base Amount: ${int(base_amount) / 100:.2f}\n"
+    msg_to_customer.body += f"First Meat Choice: {meat1}\n"
+    msg_to_customer.body += f"Second Meat Choice: {meat2}\n"
+    mail.send(msg_to_customer)
+
+    return render_template("summary.html", **order_details)
 
 
 if __name__ == "__main__":
