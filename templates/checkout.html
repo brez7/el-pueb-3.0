@@ -1,5 +1,4 @@
-{% extends "base.html" %} {% block title %}Checkout - El Pueblo Mexican Food{%
-endblock %} {% block content %}
+{% extends "base.html" %} {% block title %}Checkout - El Pueblo Mexican Food{% endblock %} {% block content %}
 <div class="container" style="background: transparent">
   <h1 class="text-danger">Checkout</h1>
   <div id="review-section">
@@ -7,6 +6,8 @@ endblock %} {% block content %}
     <p><strong>Number of People:</strong> <span id="review-people"></span></p>
     <p><strong>Date:</strong> <span id="review-date"></span></p>
     <p><strong>Time:</strong> <span id="review-time"></span></p>
+    <p><strong>First Choice of Meat:</strong> <span id="review-meat1"></span></p>
+    <p><strong>Second Choice of Meat:</strong> <span id="review-meat2"></span></p>
     <p><strong>Items:</strong> <span id="review-items"></span></p>
     <p>
       <strong>Total Amount for Selected Items:</strong> $<span
@@ -112,9 +113,7 @@ endblock %} {% block content %}
   </form>
 
   <script>
-    const stripe = Stripe(
-      "pk_test_51HMJ15LkC2vPsGwFMYXmeFGNUNJsj1AlY3kOTCa7Q17eJD4S7IL03uDnK2RhCWpaPjPHOSaP8XV5aXapc208xhOn00U58LdDFJ"
-    ); // Your Stripe public key
+    const stripe = Stripe("pk_test_51HMJ15LkC2vPsGwFMYXmeFGNUNJsj1AlY3kOTCa7Q17eJD4S7IL03uDnK2RhCWpaPjPHOSaP8XV5aXapc208xhOn00U58LdDFJ");
     const elements = stripe.elements();
     const cardElement = elements.create("card", {
       style: {
@@ -140,6 +139,8 @@ endblock %} {% block content %}
     const reviewPeople = document.getElementById("review-people");
     const reviewDate = document.getElementById("review-date");
     const reviewTime = document.getElementById("review-time");
+    const reviewMeat1 = document.getElementById("review-meat1");
+    const reviewMeat2 = document.getElementById("review-meat2");
     const reviewItems = document.getElementById("review-items");
     const reviewTotalAmount = document.getElementById("review-total-amount");
     const reviewBaseAmount = document.getElementById("review-base-amount");
@@ -148,6 +149,8 @@ endblock %} {% block content %}
     if (reviewPeople) reviewPeople.textContent = urlParams.get("people");
     if (reviewDate) reviewDate.textContent = urlParams.get("date");
     if (reviewTime) reviewTime.textContent = urlParams.get("time");
+    if (reviewMeat1) reviewMeat1.textContent = urlParams.get("meat1");
+    if (reviewMeat2) reviewMeat2.textContent = urlParams.get("meat2");
     if (reviewItems)
       reviewItems.textContent = JSON.parse(urlParams.get("items"))
         .map(item => `${item.name} (x${item.quantity})`)
@@ -166,74 +169,77 @@ endblock %} {% block content %}
           parseInt(urlParams.get("base_amount"))) /
         100
       ).toFixed(2);
-const form = document.getElementById('payment-form');
-form.addEventListener('submit', async (event) => {
-  event.preventDefault();
 
-  const email = document.getElementById('email').value;
-  const firstName = document.getElementById('first_name').value;
-  const lastName = document.getElementById('last_name').value;
-  const address = document.getElementById('address').value;
-  const city = document.getElementById('city').value;
-  const state = document.getElementById('state').value;
-  const zip = document.getElementById('zip').value;
-  const phone = document.getElementById('phone').value;
-  const people = urlParams.get('people');
-  const date = urlParams.get('date');
-  const time = urlParams.get('time');
-  const items = JSON.parse(urlParams.get('items'));
-  const total_amount = parseInt(urlParams.get('total_amount'));  // Convert to integer
-  const base_amount = parseInt(urlParams.get('base_amount'));    // Convert to integer
+    const form = document.getElementById('payment-form');
+    form.addEventListener('submit', async (event) => {
+      event.preventDefault();
 
-  const response = await fetch(window.location.pathname + window.location.search, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      email: email,
-      first_name: firstName,
-      last_name: lastName,
-      address: address,
-      city: city,
-      state: state,
-      zip: zip,
-      phone: phone,
-      people: people,
-      date: date,
-      time: time,
-      items: items,
-      total_amount: total_amount,
-      base_amount: base_amount
-    })
-  });
+      const email = document.getElementById('email').value;
+      const firstName = document.getElementById('first_name').value;
+      const lastName = document.getElementById('last_name').value;
+      const address = document.getElementById('address').value;
+      const city = document.getElementById('city').value;
+      const state = document.getElementById('state').value;
+      const zip = document.getElementById('zip').value;
+      const phone = document.getElementById('phone').value;
+      const people = urlParams.get('people');
+      const date = urlParams.get('date');
+      const time = urlParams.get('time');
+      const items = JSON.parse(urlParams.get('items'));
+      const total_amount = parseInt(urlParams.get('total_amount'));  // Convert to integer
+      const base_amount = parseInt(urlParams.get('base_amount'));    // Convert to integer
+      const meat1 = urlParams.get('meat1');
+      const meat2 = urlParams.get('meat2');
 
-  const { clientSecret } = await response.json();
-
-  const { error, paymentIntent } = await stripe.confirmCardPayment(clientSecret, {
-    payment_method: {
-      card: cardElement,
-      billing_details: {
-        name: `${firstName} ${lastName}`,
-        email: email,
-        address: {
-          line1: address,
+      const response = await fetch(window.location.pathname + window.location.search, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: email,
+          first_name: firstName,
+          last_name: lastName,
+          address: address,
           city: city,
           state: state,
-          postal_code: zip
-        },
-        phone: phone
+          zip: zip,
+          phone: phone,
+          people: people,
+          date: date,
+          time: time,
+          items: items,
+          total_amount: total_amount,
+          base_amount: base_amount,
+          meat1: meat1,
+          meat2: meat2
+        })
+      });
+
+      const { clientSecret } = await response.json();
+
+      const { error, paymentIntent } = await stripe.confirmCardPayment(clientSecret, {
+        payment_method: {
+          card: cardElement,
+          billing_details: {
+            name: `${firstName} ${lastName}`,
+            email: email,
+            address: {
+              line1: address,
+              city: city,
+              state: state,
+              postal_code: zip
+            },
+            phone: phone
+          }
+        }
+      });
+
+      if (error) {
+        document.getElementById('payment-result').textContent = error.message;
+      } else if (paymentIntent.status === 'succeeded') {
+        document.getElementById('payment-result').textContent = 'Payment successful!';
+        window.location.href = `/success?email=${encodeURIComponent(email)}&first_name=${encodeURIComponent(firstName)}&last_name=${encodeURIComponent(lastName)}&address=${encodeURIComponent(address)}&city=${encodeURIComponent(city)}&state=${encodeURIComponent(state)}&zip=${encodeURIComponent(zip)}&phone=${encodeURIComponent(phone)}&people=${encodeURIComponent(people)}&date=${encodeURIComponent(date)}&time=${encodeURIComponent(time)}&items=${encodeURIComponent(JSON.stringify(items))}&total_amount=${encodeURIComponent(total_amount)}&base_amount=${encodeURIComponent(base_amount)}&meat1=${encodeURIComponent(meat1)}&meat2=${encodeURIComponent(meat2)}`;
       }
-    }
-  });
-
-  if (error) {
-    document.getElementById('payment-result').textContent = error.message;
-  } else if (paymentIntent.status === 'succeeded') {
-    document.getElementById('payment-result').textContent = 'Payment successful!';
-    window.location.href = `/success?email=${encodeURIComponent(email)}&first_name=${encodeURIComponent(firstName)}&last_name=${encodeURIComponent(lastName)}&address=${encodeURIComponent(address)}&city=${encodeURIComponent(city)}&state=${encodeURIComponent(state)}&zip=${encodeURIComponent(zip)}&phone=${encodeURIComponent(phone)}&people=${encodeURIComponent(people)}&date=${encodeURIComponent(date)}&time=${encodeURIComponent(time)}&items=${encodeURIComponent(JSON.stringify(items))}&total_amount=${encodeURIComponent(total_amount)}&base_amount=${encodeURIComponent(base_amount)}`;
-  }
-});
-
-   
+    });
   </script>
 </div>
 {% endblock %}

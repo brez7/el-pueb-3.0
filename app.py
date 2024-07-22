@@ -65,6 +65,8 @@ def menu():
                 date=date,
                 time=time,
                 items=json.dumps(items),
+                meat1=meat1,
+                meat2=meat2,
             )
         )
     people = request.args.get("people")
@@ -131,6 +133,44 @@ def success():
         "meat2": meat2,
         "customer_email": customer_email,
     }
+
+    # Send email to the restaurant
+    msg_to_restaurant = Message(
+        "New Catering Order",
+        sender="rbresnik@gmail.com",
+        recipients=["rob@elpueblomex.com"],
+    )
+    msg_to_restaurant.body = (
+        f"Order Details:\nPeople: {people}\nDate: {date}\nTime: {time}\n"
+    )
+    for item in items:
+        msg_to_restaurant.body += (
+            f"{item['name']} (x{item['quantity']}) - ${item['price'] / 100:.2f}\n"
+        )
+    msg_to_restaurant.body += f"Total Amount: ${int(total_amount) / 100:.2f}\n"
+    msg_to_restaurant.body += f"Base Amount: ${int(base_amount) / 100:.2f}\n"
+    msg_to_restaurant.body += f"First Meat Choice: {meat1}\n"
+    msg_to_restaurant.body += f"Second Meat Choice: {meat2}\n"
+    mail.send(msg_to_restaurant)
+
+    # Send email to the customer
+    msg_to_customer = Message(
+        "Your Catering Order Confirmation",
+        sender="rbresnik@gmail.com",
+        recipients=[customer_email],
+    )
+    msg_to_customer.body = f"Thank you for your order!\n\nOrder Details:\nPeople: {people}\nDate: {date}\nTime: {time}\n"
+    for item in items:
+        msg_to_customer.body += (
+            f"{item['name']} (x{item['quantity']}) - ${item['price'] / 100:.2f}\n"
+        )
+    msg_to_customer.body += f"Total Amount: ${int(total_amount) / 100:.2f}\n"
+    msg_to_customer.body += f"Base Amount: ${int(base_amount) / 100:.2f}\n"
+    msg_to_customer.body += f"First Meat Choice: {meat1}\n"
+    msg_to_customer.body += f"Second Meat Choice: {meat2}\n"
+    mail.send(msg_to_customer)
+
+    return render_template("summary.html", **order_details)
 
     # Send email to the restaurant
     msg_to_restaurant = Message(
