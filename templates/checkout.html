@@ -1,24 +1,17 @@
 {% extends "base.html" %} {% block title %}Checkout - El Pueblo Mexican Food{% endblock %} {% block content %}
-<div class="container" style="background: transparent">
+<div class="container" style="background: transparent;">
   <h1 class="text-danger">Checkout</h1>
   <div id="review-section">
     <h2 class="text-danger">Review Your Information</h2>
     <p><strong>Number of People:</strong> <span id="review-people"></span></p>
     <p><strong>Date:</strong> <span id="review-date"></span></p>
     <p><strong>Time:</strong> <span id="review-time"></span></p>
-    <p><strong>First Choice of Meat:</strong> <span id="review-meat1"></span></p>
-    <p><strong>Second Choice of Meat:</strong> <span id="review-meat2"></span></p>
-    <p><strong>Items:</strong> <span id="review-items"></span></p>
+    <p><strong>First Choice of Meat:</strong> {{ meat_choices[meat1] }}</p>
+    <p><strong>Second Choice of Meat:</strong> {{ meat_choices[meat2] }}</p>
     <p>
-      <strong>Total Amount for Selected Items:</strong> $<span
-        id="review-total-amount"
-      ></span>
+      <strong>Total Amount for Catering:</strong> $<span id="review-total-amount"></span>
     </p>
-    <p>
-      <strong>Base Amount for Catering:</strong> $<span
-        id="review-base-amount"
-      ></span>
-    </p>
+    <p><strong>Base Amount:</strong> $<span id="review-base-amount"></span></p>
     <p><strong>Grand Total:</strong> $<span id="review-grand-total"></span></p>
   </div>
   <form id="payment-form">
@@ -139,9 +132,6 @@
     const reviewPeople = document.getElementById("review-people");
     const reviewDate = document.getElementById("review-date");
     const reviewTime = document.getElementById("review-time");
-    const reviewMeat1 = document.getElementById("review-meat1");
-    const reviewMeat2 = document.getElementById("review-meat2");
-    const reviewItems = document.getElementById("review-items");
     const reviewTotalAmount = document.getElementById("review-total-amount");
     const reviewBaseAmount = document.getElementById("review-base-amount");
     const reviewGrandTotal = document.getElementById("review-grand-total");
@@ -149,12 +139,6 @@
     if (reviewPeople) reviewPeople.textContent = urlParams.get("people");
     if (reviewDate) reviewDate.textContent = urlParams.get("date");
     if (reviewTime) reviewTime.textContent = urlParams.get("time");
-    if (reviewMeat1) reviewMeat1.textContent = urlParams.get("meat1");
-    if (reviewMeat2) reviewMeat2.textContent = urlParams.get("meat2");
-    if (reviewItems)
-      reviewItems.textContent = JSON.parse(urlParams.get("items"))
-        .map(item => `${item.name} (x${item.quantity})`)
-        .join(", ");
     if (reviewTotalAmount)
       reviewTotalAmount.textContent = (
         parseInt(urlParams.get("total_amount")) / 100
@@ -165,9 +149,7 @@
       ).toFixed(2);
     if (reviewGrandTotal)
       reviewGrandTotal.textContent = (
-        (parseInt(urlParams.get("total_amount")) +
-          parseInt(urlParams.get("base_amount"))) /
-        100
+        (parseInt(urlParams.get("base_amount")) + parseInt(urlParams.get("total_amount"))) / 100
       ).toFixed(2);
 
     const form = document.getElementById('payment-form');
@@ -185,7 +167,6 @@
       const people = urlParams.get('people');
       const date = urlParams.get('date');
       const time = urlParams.get('time');
-      const items = JSON.parse(urlParams.get('items'));
       const total_amount = parseInt(urlParams.get('total_amount'));  // Convert to integer
       const base_amount = parseInt(urlParams.get('base_amount'));    // Convert to integer
       const meat1 = urlParams.get('meat1');
@@ -206,7 +187,6 @@
           people: people,
           date: date,
           time: time,
-          items: items,
           total_amount: total_amount,
           base_amount: base_amount,
           meat1: meat1,
@@ -214,30 +194,36 @@
         })
       });
 
-      const { clientSecret } = await response.json();
+      const result = await response.json();
+      const clientSecret = result.clientSecret;
 
-      const { error, paymentIntent } = await stripe.confirmCardPayment(clientSecret, {
-        payment_method: {
-          card: cardElement,
-          billing_details: {
-            name: `${firstName} ${lastName}`,
-            email: email,
-            address: {
-              line1: address,
-              city: city,
-              state: state,
-              postal_code: zip
-            },
-            phone: phone
+      if (total_amount > 0) {
+        const { error, paymentIntent } = await stripe.confirmCardPayment(clientSecret, {
+          payment_method: {
+            card: cardElement,
+            billing_details: {
+              name: `${firstName} ${lastName}`,
+              email: email,
+              address: {
+                line1: address,
+                city: city,
+                state: state,
+                postal_code: zip
+              },
+              phone: phone
+            }
           }
-        }
-      });
+        });
 
-      if (error) {
-        document.getElementById('payment-result').textContent = error.message;
-      } else if (paymentIntent.status === 'succeeded') {
+        if (error) {
+          document.getElementById('payment-result').textContent = error.message;
+        } else if (paymentIntent.status === 'succeeded') {
+          document.getElementById('payment-result').textContent = 'Payment successful!';
+          window.location.href = `/success?email=${encodeURIComponent(email)}&first_name=${encodeURIComponent(firstName)}&last_name=${encodeURIComponent(lastName)}&address=${encodeURIComponent(address)}&city=${encodeURIComponent(city)}&state=${encodeURIComponent(state)}&zip=${encodeURIComponent(zip)}&phone=${encodeURIComponent(phone)}&people=${encodeURIComponent(people)}&date=${encodeURIComponent(date)}&time=${encodeURIComponent(time)}&total_amount=${encodeURIComponent(total_amount)}&base_amount=${encodeURIComponent(base_amount)}&meat1=${encodeURIComponent(meat1)}&meat2=${encodeURIComponent(meat2)}`;
+        }
+      } else {
         document.getElementById('payment-result').textContent = 'Payment successful!';
-        window.location.href = `/success?email=${encodeURIComponent(email)}&first_name=${encodeURIComponent(firstName)}&last_name=${encodeURIComponent(lastName)}&address=${encodeURIComponent(address)}&city=${encodeURIComponent(city)}&state=${encodeURIComponent(state)}&zip=${encodeURIComponent(zip)}&phone=${encodeURIComponent(phone)}&people=${encodeURIComponent(people)}&date=${encodeURIComponent(date)}&time=${encodeURIComponent(time)}&items=${encodeURIComponent(JSON.stringify(items))}&total_amount=${encodeURIComponent(total_amount)}&base_amount=${encodeURIComponent(base_amount)}&meat1=${encodeURIComponent(meat1)}&meat2=${encodeURIComponent(meat2)}`;
+        window.location.href = `/success?email=${encodeURIComponent(email)}&first_name=${encodeURIComponent(firstName)}&last_name=${encodeURIComponent(lastName)}&address=${encodeURIComponent(address)}&city=${encodeURIComponent(city)}&state=${encodeURIComponent(state)}&zip=${encodeURIComponent(zip)}&phone=${encodeURIComponent(phone)}&people=${encodeURIComponent(people)}&date=${encodeURIComponent(date)}&time=${encodeURIComponent(time)}&total_amount=${encodeURIComponent(total_amount)}&base_amount=${encodeURIComponent(base_amount)}&meat1=${encodeURIComponent(meat1)}&meat2=${encodeURIComponent(meat2)}`;
       }
     });
   </script>
