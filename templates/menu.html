@@ -8,7 +8,7 @@
   
   <!-- Display the total number of people and base amount -->
   <p>Total number of people: {{ people }}</p>
-  <p>Base amount for catering: ${{ base_amount }}</p>
+  <p>Base amount for catering: ${{ "%.2f"|format(base_amount / 100) }}</p>
 
   <form action="{{ url_for('menu', people=request.args['people'], date=request.args['date'], time=request.args['time']) }}" method="post">
     <div class="form-group">
