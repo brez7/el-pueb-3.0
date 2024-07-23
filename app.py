@@ -51,20 +51,19 @@ def menu():
         items = [
             {
                 "name": meat1,
-                "price": 2000,
                 "quantity": 1,
             },
             {
                 "name": meat2,
-                "price": 2000,
                 "quantity": 1,
             },
         ]
-        total_amount = sum(item["price"] * item["quantity"] for item in items)
         people = request.args["people"]
         date = request.args["date"]
         time = request.args["time"]
         base_amount = int(people) * 1800  # Base amount calculation
+        total_amount = 0  # Total amount is zero for now
+
         return redirect(
             url_for(
                 "checkout",
@@ -201,10 +200,7 @@ def success():
     )
     msg_to_restaurant.body = f"Order Details:\nPeople: {people}\nDate: {date.strftime('%m-%d-%Y')}\nTime: {time}\n"
     for item in items:
-        msg_to_restaurant.body += (
-            f"{item['name']} (x{item['quantity']}) - ${item['price'] / 100:.2f}\n"
-        )
-    msg_to_restaurant.body += f"Total Amount: ${int(total_amount) / 100:.2f}\n"
+        msg_to_restaurant.body += f"{item['name']} (x{item['quantity']})\n"
     msg_to_restaurant.body += f"Base Amount: ${int(base_amount) / 100:.2f}\n"
     msg_to_restaurant.body += f"First Meat Choice: {meat1}\n"
     msg_to_restaurant.body += f"Second Meat Choice: {meat2}\n"
@@ -218,10 +214,7 @@ def success():
     )
     msg_to_customer.body = f"Thank you for your order!\n\nOrder Details:\nPeople: {people}\nDate: {date.strftime('%m-%d-%Y')}\nTime: {time}\n"
     for item in items:
-        msg_to_customer.body += (
-            f"{item['name']} (x{item['quantity']}) - ${item['price'] / 100:.2f}\n"
-        )
-    msg_to_customer.body += f"Total Amount: ${int(total_amount) / 100:.2f}\n"
+        msg_to_customer.body += f"{item['name']} (x{item['quantity']})\n"
     msg_to_customer.body += f"Base Amount: ${int(base_amount) / 100:.2f}\n"
     msg_to_customer.body += f"First Meat Choice: {meat1}\n"
     msg_to_customer.body += f"Second Meat Choice: {meat2}\n"
