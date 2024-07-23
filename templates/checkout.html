@@ -1,18 +1,21 @@
-{% extends "base.html" %} {% block title %}Checkout - El Pueblo Mexican Food{% endblock %} {% block content %}
+{% extends "base.html" %}
+{% block title %}Checkout - El Pueblo Mexican Food{% endblock %}
+{% block content %}
+
 <div class="container" style="background: transparent;">
   <h1 class="text-danger">Checkout</h1>
   <div id="review-section">
     <h2 class="text-danger">Review Your Information</h2>
-    <p><strong>Number of People:</strong> <span id="review-people"></span></p>
-    <p><strong>Date:</strong> <span id="review-date"></span></p>
-    <p><strong>Time:</strong> <span id="review-time"></span></p>
+    <p><strong>Number of People:</strong> <span id="review-people">{{ people }}</span></p>
+    <p><strong>Date:</strong> <span id="review-date">{{ date|strftime('%m-%d-%Y') }}</span></p>
+    <p><strong>Time:</strong> <span id="review-time">{{ time }}</span></p>
     <p><strong>First Choice of Meat:</strong> {{ meat_choices[meat1] }}</p>
     <p><strong>Second Choice of Meat:</strong> {{ meat_choices[meat2] }}</p>
     <p>
-      <strong>Total Amount for Catering:</strong> $<span id="review-total-amount"></span>
+      <strong>Total Amount for Catering:</strong> $<span id="review-total-amount">{{ "%.2f"|format(total_amount / 100) }}</span>
     </p>
-    <p><strong>Base Amount:</strong> $<span id="review-base-amount"></span></p>
-    <p><strong>Grand Total:</strong> $<span id="review-grand-total"></span></p>
+    <p><strong>Base Amount:</strong> $<span id="review-base-amount">{{ "%.2f"|format(base_amount / 100) }}</span></p>
+    <p><strong>Grand Total:</strong> $<span id="review-grand-total">{{ "%.2f"|format((total_amount + base_amount) / 100) }}</span></p>
   </div>
   <form id="payment-form">
     <h2 class="text-danger">Personal Details</h2>
@@ -137,7 +140,7 @@
     const reviewGrandTotal = document.getElementById("review-grand-total");
 
     if (reviewPeople) reviewPeople.textContent = urlParams.get("people");
-    if (reviewDate) reviewDate.textContent = urlParams.get("date");
+    if (reviewDate) reviewDate.textContent = new Date(urlParams.get("date")).toLocaleDateString('en-US');
     if (reviewTime) reviewTime.textContent = urlParams.get("time");
     if (reviewTotalAmount)
       reviewTotalAmount.textContent = (
@@ -214,7 +217,6 @@
             }
           }
         });
-
         if (error) {
           document.getElementById('payment-result').textContent = error.message;
         } else if (paymentIntent.status === 'succeeded') {

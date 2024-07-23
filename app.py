@@ -1,6 +1,7 @@
 from flask import Flask, render_template, request, redirect, url_for, jsonify
 import stripe
 from flask_mail import Mail, Message
+from datetime import datetime
 import json
 
 app = Flask(__name__)
@@ -18,12 +19,13 @@ app.config["MAIL_USE_SSL"] = False
 
 mail = Mail(app)
 
-# Mapping dictionary
-meat_choices = {
-    "carne_asada": "Carne Asada",
-    "chicken": "Chicken",
-    "adobada": "Adobada",
-}
+
+# Custom filter to format datetime
+@app.template_filter("strftime")
+def format_datetime(value, format="%m-%d-%Y"):
+    if value is None:
+        return ""
+    return value.strftime(format)
 
 
 @app.route("/")
@@ -50,8 +52,6 @@ def menu():
         date = request.args["date"]
         time = request.args["time"]
         base_amount = int(people) * 1800  # Base amount calculation
-        total_amount = 0  # No additional items
-
         return redirect(
             url_for(
                 "checkout",
@@ -60,6 +60,7 @@ def menu():
                 people=people,
                 date=date,
                 time=time,
+                items=json.dumps(items),
                 meat1=meat1,
                 meat2=meat2,
             )
@@ -73,8 +74,21 @@ def menu():
 def checkout():
     if request.method == "POST":
         data = request.get_json()
-        total_amount = int(data["total_amount"])
-        base_amount = int(data["base_amount"])
+
+        if data is None:
+            return jsonify({"error": "Invalid JSON received"}), 400
+
+        total_amount = data.get("total_amount")
+        base_amount = data.get("base_amount")
+
+        if total_amount is None or base_amount is None:
+            return jsonify({"error": "Missing amount data"}), 400
+
+        try:
+            total_amount = int(total_amount)
+            base_amount = int(base_amount)
+        except ValueError:
+            return jsonify({"error": "Invalid amount data"}), 400
 
         try:
             if total_amount > 0:
@@ -88,15 +102,29 @@ def checkout():
                 # No payment intent needed, but return a dummy client secret for consistency
                 return jsonify({"clientSecret": "dummy_client_secret"})
         except Exception as e:
+            print(f"Error creating payment intent: {e}")  # Log the error to the console
             return jsonify({"error": str(e)}), 500
 
-    people = request.args.get("people")
-    date = request.args.get("date")
-    time = request.args.get("time")
-    meat1 = request.args.get("meat1")
-    meat2 = request.args.get("meat2")
-    total_amount = int(request.args.get("total_amount"))  # Ensure this is an integer
-    base_amount = int(request.args.get("base_amount"))  # Ensure this is an integer
+    try:
+        people = request.args.get("people")
+        date = datetime.strptime(request.args.get("date"), "%Y-%m-%d")
+        time = request.args.get("time")
+        meat1 = request.args.get("meat1")
+        meat2 = request.args.get("meat2")
+        items = request.args.get("items")
+        if items is None:
+            items = []
+        else:
+            items = json.loads(items)
+        total_amount = int(
+            request.args.get("total_amount")
+        )  # Ensure this is an integer
+        base_amount = int(request.args.get("base_amount"))  # Ensure this is an integer
+    except Exception as e:
+        print(
+            f"Error processing request parameters: {e}"
+        )  # Log the error to the console
+        return jsonify({"error": str(e)}), 400
 
     return render_template(
         "checkout.html",
@@ -105,65 +133,85 @@ def checkout():
         time=time,
         meat1=meat1,
         meat2=meat2,
+        items=items,
         total_amount=total_amount,
         base_amount=base_amount,
-        meat_choices=meat_choices,
+        meat_choices={
+            "carne_asada": "Carne Asada",
+            "chicken": "Chicken",
+            "adobada": "Adobada",
+        },
     )
 
 
 @app.route("/success")
 def success():
+    # Retrieve order details from query parameters
     people = request.args.get("people")
     date = request.args.get("date")
+    date = datetime.strptime(date, "%Y-%m-%d")
     time = request.args.get("time")
+    items = request.args.get("items")
+    if items is not None:
+        items = json.loads(items)
+    else:
+        items = []
     total_amount = request.args.get("total_amount")
     base_amount = request.args.get("base_amount")
     meat1 = request.args.get("meat1")
     meat2 = request.args.get("meat2")
     customer_email = request.args.get("email")
 
+    # Prepare email content
     order_details = {
         "people": people,
         "date": date,
         "time": time,
+        "items": items,
         "total_amount": total_amount,
         "base_amount": base_amount,
         "meat1": meat1,
         "meat2": meat2,
         "customer_email": customer_email,
-        "meat_choices": meat_choices,
+        "meat_choices": {
+            "carne_asada": "Carne Asada",
+            "chicken": "Chicken",
+            "adobada": "Adobada",
+        },
     }
 
+    # Send email to the restaurant
     msg_to_restaurant = Message(
         "New Catering Order",
         sender="rbresnik@gmail.com",
         recipients=["rob@elpueblomex.com"],
     )
-    msg_to_restaurant.body = (
-        f"Order Details:\nPeople: {people}\nDate: {date}\nTime: {time}\n"
-    )
-    msg_to_restaurant.body += (
-        f"Total Amount for Additional Items: ${int(total_amount) / 100:.2f}\n"
-    )
-    msg_to_restaurant.body += (
-        f"Base Amount for Catering: ${int(base_amount) / 100:.2f}\n"
-    )
-    msg_to_restaurant.body += f"First Meat Choice: {meat_choices[meat1]}\n"
-    msg_to_restaurant.body += f"Second Meat Choice: {meat_choices[meat2]}\n"
+    msg_to_restaurant.body = f"Order Details:\nPeople: {people}\nDate: {date.strftime('%m-%d-%Y')}\nTime: {time}\n"
+    for item in items:
+        msg_to_restaurant.body += (
+            f"{item['name']} (x{item['quantity']}) - ${item['price'] / 100:.2f}\n"
+        )
+    msg_to_restaurant.body += f"Total Amount: ${int(total_amount) / 100:.2f}\n"
+    msg_to_restaurant.body += f"Base Amount: ${int(base_amount) / 100:.2f}\n"
+    msg_to_restaurant.body += f"First Meat Choice: {meat1}\n"
+    msg_to_restaurant.body += f"Second Meat Choice: {meat2}\n"
     mail.send(msg_to_restaurant)
 
+    # Send email to the customer
     msg_to_customer = Message(
         "Your Catering Order Confirmation",
         sender="rbresnik@gmail.com",
         recipients=[customer_email],
     )
-    msg_to_customer.body = f"Thank you for your order!\n\nOrder Details:\nPeople: {people}\nDate: {date}\nTime: {time}\n"
-    msg_to_customer.body += (
-        f"Total Amount for Additional Items: ${int(total_amount) / 100:.2f}\n"
-    )
-    msg_to_customer.body += f"Base Amount for Catering: ${int(base_amount) / 100:.2f}\n"
-    msg_to_customer.body += f"First Meat Choice: {meat_choices[meat1]}\n"
-    msg_to_customer.body += f"Second Meat Choice: {meat_choices[meat2]}\n"
+    msg_to_customer.body = f"Thank you for your order!\n\nOrder Details:\nPeople: {people}\nDate: {date.strftime('%m-%d-%Y')}\nTime: {time}\n"
+    for item in items:
+        msg_to_customer.body += (
+            f"{item['name']} (x{item['quantity']}) - ${item['price'] / 100:.2f}\n"
+        )
+    msg_to_customer.body += f"Total Amount: ${int(total_amount) / 100:.2f}\n"
+    msg_to_customer.body += f"Base Amount: ${int(base_amount) / 100:.2f}\n"
+    msg_to_customer.body += f"First Meat Choice: {meat1}\n"
+    msg_to_customer.body += f"Second Meat Choice: {meat2}\n"
     mail.send(msg_to_customer)
 
     return render_template("summary.html", **order_details)
