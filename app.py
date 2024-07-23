@@ -48,6 +48,19 @@ def menu():
     if request.method == "POST":
         meat1 = request.form.get("meat1")
         meat2 = request.form.get("meat2")
+        items = [
+            {
+                "name": meat1,
+                "price": 2000,
+                "quantity": 1,
+            },
+            {
+                "name": meat2,
+                "price": 2000,
+                "quantity": 1,
+            },
+        ]
+        total_amount = sum(item["price"] * item["quantity"] for item in items)
         people = request.args["people"]
         date = request.args["date"]
         time = request.args["time"]
