@@ -31,15 +31,46 @@
     </div>
 
     <!-- Add-on items -->
-    <h3>Add-On Items ($20 each)</h3>
-    {% for i in range(1, 8) %}
-      <div class="form-check">
-        <input class="form-check-input" type="checkbox" value="1" id="item{{ i }}" name="item{{ i }}">
-        <label class="form-check-label" for="item{{ i }}">
-          Item {{ i }}
-        </label>
-      </div>
-    {% endfor %}
+    <h3>Add-On Items</h3>
+    <div class="form-group">
+      <label for="additional_meat_choice">Additional Meat Choice ($30)</label>
+      <select class="form-control" id="additional_meat_choice" name="additional_meat_choice">
+        <option value="" disabled selected>Select additional meat</option>
+        <option value="carne_asada">Carne Asada</option>
+        <option value="chicken">Pollo Asado</option>
+        <option value="adobada">Adobada</option>
+      </select>
+    </div>
+    <div class="form-check">
+      <input class="form-check-input" type="checkbox" value="1" id="quesadillas" name="quesadillas">
+      <label class="form-check-label" for="quesadillas">
+        Quesadillas ($30)
+      </label>
+    </div>
+    <div class="form-check">
+      <input class="form-check-input" type="checkbox" value="1" id="shrimp" name="shrimp">
+      <label class="form-check-label" for="shrimp">
+        Shrimp ($40)
+      </label>
+    </div>
+    <div class="form-check">
+      <input class="form-check-input" type="checkbox" value="1" id="sour_cream" name="sour_cream">
+      <label class="form-check-label" for="sour_cream">
+        Sour Cream ($20)
+      </label>
+    </div>
+    <div class="form-check">
+      <input class="form-check-input" type="checkbox" value="1" id="buneolos" name="buneolos">
+      <label class="form-check-label" for="buneolos">
+        Buneolos ($20)
+      </label>
+    </div>
+    <div class="form-check">
+      <input class="form-check-input" type="checkbox" value="1" id="onions_cilantro" name="onions_cilantro">
+      <label class="form-check-label" for="onions_cilantro">
+        Add Onions/Cilantro (No Charge)
+      </label>
+    </div>
 
     <button type="submit" class="btn btn-primary mt-3">Checkout</button>
   </form>

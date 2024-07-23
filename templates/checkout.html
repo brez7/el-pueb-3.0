@@ -11,93 +11,41 @@
     <p><strong>Time:</strong> <span id="review-time">{{ time }}</span></p>
     <p><strong>First Choice of Meat:</strong> {{ meat_choices[meat1] }}</p>
     <p><strong>Second Choice of Meat:</strong> {{ meat_choices[meat2] }}</p>
-    <p>
-      <strong>Base Amount for Catering:</strong> $<span id="review-base-amount">{{ "%.2f"|format(base_amount / 100) }}</span>
-    </p>
+    <p><strong>Base Amount for Catering:</strong> $<span id="review-base-amount">{{ "%.2f"|format(base_amount / 100) }}</span></p>
+    <p><strong>Additional Items:</strong></p>
+    <ul>
+      {% for item in items %}
+        <li>{{ item.name }} - ${{ "%.2f"|format(item.price / 100) if 'price' in item else 'No Charge' }}</li>
+      {% endfor %}
+    </ul>
     <p><strong>Total Amount for Additional Items:</strong> $<span id="review-total-amount">{{ "%.2f"|format(total_amount / 100) }}</span></p>
     <p><strong>Grand Total:</strong> $<span id="review-grand-total">{{ "%.2f"|format((base_amount + total_amount) / 100) }}</span></p>
   </div>
   <form id="payment-form">
     <h2 class="text-danger">Personal Details</h2>
     <div class="form-group">
-      <input
-        type="text"
-        class="form-control"
-        id="first_name"
-        name="first_name"
-        placeholder="First Name"
-        required
-      />
+      <input type="text" class="form-control" id="first_name" name="first_name" placeholder="First Name" required>
     </div>
     <div class="form-group">
-      <input
-        type="text"
-        class="form-control"
-        id="last_name"
-        name="last_name"
-        placeholder="Last Name"
-        required
-      />
+      <input type="text" class="form-control" id="last_name" name="last_name" placeholder="Last Name" required>
     </div>
     <div class="form-group">
-      <input
-        type="text"
-        class="form-control"
-        id="address"
-        name="address"
-        placeholder="Address"
-        required
-      />
+      <input type="text" class="form-control" id="address" name="address" placeholder="Address" required>
     </div>
     <div class="form-group">
-      <input
-        type="text"
-        class="form-control"
-        id="city"
-        name="city"
-        placeholder="City"
-        required
-      />
+      <input type="text" class="form-control" id="city" name="city" placeholder="City" required>
     </div>
     <div class="form-group">
-      <input
-        type="text"
-        class="form-control"
-        id="state"
-        name="state"
-        placeholder="State"
-        required
-      />
+      <input type="text" class="form-control" id="state" name="state" placeholder="State" required>
     </div>
     <div class="form-group">
-      <input
-        type="text"
-        class="form-control"
-        id="zip"
-        name="zip"
-        placeholder="Zip Code"
-        required
-      />
+      <input type="text" class="form-control" id="zip" name="zip" placeholder="Zip Code" required>
     </div>
     <div class="form-group">
-      <input
-        type="text"
-        class="form-control"
-        id="phone"
-        name="phone"
-        placeholder="Phone Number"
-        required
-      />
+      <input type="text" class="form-control" id="phone" name="phone" placeholder="Phone Number" required>
     </div>
     <div class="form-group">
-      <input
-        type="email"
-        class="form-control"
-        id="email"
-        name="email"
-        placeholder="Email"
-        required
-      />
+      <input type="email" class="form-control" id="email" name="email" placeholder="Email" required>
     </div>
 
     <h2 class="text-danger">Payment Information</h2>
@@ -174,6 +122,7 @@
       const base_amount = parseInt(urlParams.get('base_amount'));    // Convert to integer
       const meat1 = urlParams.get('meat1');
       const meat2 = urlParams.get('meat2');
+      const items = JSON.parse(decodeURIComponent(urlParams.get('items')));
 
       const response = await fetch(window.location.pathname + window.location.search, {
         method: 'POST',
@@ -221,11 +170,13 @@
           document.getElementById('payment-result').textContent = error.message;
         } else if (paymentIntent.status === 'succeeded') {
           document.getElementById('payment-result').textContent = 'Payment successful!';
-          window.location.href = `/success?email=${encodeURIComponent(email)}&first_name=${encodeURIComponent(firstName)}&last_name=${encodeURIComponent(lastName)}&address=${encodeURIComponent(address)}&city=${encodeURIComponent(city)}&state=${encodeURIComponent(state)}&zip=${encodeURIComponent(zip)}&phone=${encodeURIComponent(phone)}&people=${encodeURIComponent(people)}&date=${encodeURIComponent(date)}&time=${encodeURIComponent(time)}&total_amount=${encodeURIComponent(total_amount)}&base_amount=${encodeURIComponent(base_amount)}&meat1=${encodeURIComponent(meat1)}&meat2=${encodeURIComponent(meat2)}`;
+window.location.href = `/success?email=${encodeURIComponent(email)}&first_name=${encodeURIComponent(firstName)}&last_name=${encodeURIComponent(lastName)}&address=${encodeURIComponent(address)}&city=${encodeURIComponent(city)}&state=${encodeURIComponent(state)}&zip=${encodeURIComponent(zip)}&phone=${encodeURIComponent(phone)}&people=${encodeURIComponent(parseInt(people))}&date=${encodeURIComponent(date)}&time=${encodeURIComponent(time)}&total_amount=${encodeURIComponent(parseInt(total_amount))}&base_amount=${encodeURIComponent(parseInt(base_amount))}&meat1=${encodeURIComponent(meat1)}&meat2=${encodeURIComponent(meat2)}&items=${encodeURIComponent(JSON.stringify(items))}`;
+
+
         }
       } else {
         document.getElementById('payment-result').textContent = 'Payment successful!';
-        window.location.href = `/success?email=${encodeURIComponent(email)}&first_name=${encodeURIComponent(firstName)}&last_name=${encodeURIComponent(lastName)}&address=${encodeURIComponent(address)}&city=${encodeURIComponent(city)}&state=${encodeURIComponent(state)}&zip=${encodeURIComponent(zip)}&phone=${encodeURIComponent(phone)}&people=${encodeURIComponent(people)}&date=${encodeURIComponent(date)}&time=${encodeURIComponent(time)}&total_amount=${encodeURIComponent(total_amount)}&base_amount=${encodeURIComponent(base_amount)}&meat1=${encodeURIComponent(meat1)}&meat2=${encodeURIComponent(meat2)}`;
+        window.location.href = `/success?email=${encodeURIComponent(email)}&first_name=${encodeURIComponent(firstName)}&last_name=${encodeURIComponent(lastName)}&address=${encodeURIComponent(address)}&city=${encodeURIComponent(city)}&state=${encodeURIComponent(state)}&zip=${encodeURIComponent(zip)}&phone=${encodeURIComponent(phone)}&people=${encodeURIComponent(people)}&date=${encodeURIComponent(date)}&time=${encodeURIComponent(time)}&total_amount=${encodeURIComponent(total_amount)}&base_amount=${encodeURIComponent(base_amount)}&meat1=${encodeURIComponent(meat1)}&meat2=${encodeURIComponent(meat2)}&items=${encodeURIComponent(JSON.stringify(items))}`;
       }
     });
   </script>

@@ -49,13 +49,35 @@ def menu():
         meat1 = request.form.get("meat1")
         meat2 = request.form.get("meat2")
         add_ons = []
-        for i in range(1, 8):
-            if request.form.get(f"item{i}"):
-                add_ons.append({"name": f"Item {i}", "price": 2000, "quantity": 1})
+
+        additional_meat_choice = request.form.get("additional_meat_choice")
+        if additional_meat_choice:
+            add_ons.append(
+                {
+                    "name": f"Additional Meat Choice: {additional_meat_choice}",
+                    "price": 3000,
+                    "quantity": 1,
+                }
+            )
+
+        if request.form.get("quesadillas"):
+            add_ons.append({"name": "Quesadillas", "price": 3000, "quantity": 1})
+
+        if request.form.get("shrimp"):
+            add_ons.append({"name": "Shrimp", "price": 4000, "quantity": 1})
+
+        if request.form.get("sour_cream"):
+            add_ons.append({"name": "Sour Cream", "price": 2000, "quantity": 1})
+
+        if request.form.get("buneolos"):
+            add_ons.append({"name": "Buneolos", "price": 2000, "quantity": 1})
+
+        if request.form.get("onions_cilantro"):
+            add_ons.append({"name": "Add Onions/Cilantro", "price": 0, "quantity": 1})
 
         items = [
-            {"name": meat1, "quantity": 1},
-            {"name": meat2, "quantity": 1},
+            {"name": meat1, "price": 0, "quantity": 1},
+            {"name": meat2, "price": 0, "quantity": 1},
         ] + add_ons
 
         people = request.args["people"]
@@ -200,7 +222,11 @@ def success():
     )
     msg_to_restaurant.body = f"Order Details:\nPeople: {people}\nDate: {date.strftime('%m-%d-%Y')}\nTime: {time}\n"
     for item in items:
-        msg_to_restaurant.body += f"{item['name']} (x{item['quantity']})\n"
+        msg_to_restaurant.body += f"{item['name']} (x{item.get('quantity', 1)})"
+        if "price" in item:
+            msg_to_restaurant.body += f" - ${int(item['price']) / 100:.2f}\n"
+        else:
+            msg_to_restaurant.body += "\n"
     msg_to_restaurant.body += f"Base Amount: ${int(base_amount) / 100:.2f}\n"
     msg_to_restaurant.body += f"First Meat Choice: {meat1}\n"
     msg_to_restaurant.body += f"Second Meat Choice: {meat2}\n"
@@ -214,7 +240,11 @@ def success():
     )
     msg_to_customer.body = f"Thank you for your order!\n\nOrder Details:\nPeople: {people}\nDate: {date.strftime('%m-%d-%Y')}\nTime: {time}\n"
     for item in items:
-        msg_to_customer.body += f"{item['name']} (x{item['quantity']})\n"
+        msg_to_customer.body += f"{item['name']} (x{item.get('quantity', 1)})"
+        if "price" in item:
+            msg_to_customer.body += f" - ${int(item['price']) / 100:.2f}\n"
+        else:
+            msg_to_customer.body += "\n"
     msg_to_customer.body += f"Base Amount: ${int(base_amount) / 100:.2f}\n"
     msg_to_customer.body += f"First Meat Choice: {meat1}\n"
     msg_to_customer.body += f"Second Meat Choice: {meat2}\n"
