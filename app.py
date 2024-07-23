@@ -48,21 +48,21 @@ def menu():
     if request.method == "POST":
         meat1 = request.form.get("meat1")
         meat2 = request.form.get("meat2")
+        add_ons = []
+        for i in range(1, 8):
+            if request.form.get(f"item{i}"):
+                add_ons.append({"name": f"Item {i}", "price": 2000, "quantity": 1})
+
         items = [
-            {
-                "name": meat1,
-                "quantity": 1,
-            },
-            {
-                "name": meat2,
-                "quantity": 1,
-            },
-        ]
+            {"name": meat1, "quantity": 1},
+            {"name": meat2, "quantity": 1},
+        ] + add_ons
+
         people = request.args["people"]
         date = request.args["date"]
         time = request.args["time"]
         base_amount = int(people) * 1800  # Base amount calculation
-        total_amount = 0  # Total amount is zero for now
+        total_amount = sum(item["price"] * item["quantity"] for item in add_ons)
 
         return redirect(
             url_for(

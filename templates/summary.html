@@ -11,6 +11,6 @@
   <p><strong>Second Choice of Meat:</strong> {{ meat_choices[meat2] }}</p>
   <p><strong>Total Amount for Catering:</strong> ${{ "%.2f"|format(base_amount|int / 100) }}</p>
   <p><strong>Total Amount for Additional Items:</strong> ${{ "%.2f"|format(total_amount|int / 100) }}</p>
-  <p><strong>Grand Total:</strong> ${{ "%.2f"|format(base_amount|int / 100) }}</p>
+  <p><strong>Grand Total:</strong> ${{ "%.2f"|format((base_amount|int + total_amount|int) / 100) }}</p>
 </div>
 {% endblock %}

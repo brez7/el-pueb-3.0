@@ -15,7 +15,7 @@
       <strong>Base Amount for Catering:</strong> $<span id="review-base-amount">{{ "%.2f"|format(base_amount / 100) }}</span>
     </p>
     <p><strong>Total Amount for Additional Items:</strong> $<span id="review-total-amount">{{ "%.2f"|format(total_amount / 100) }}</span></p>
-    <p><strong>Grand Total:</strong> $<span id="review-grand-total">{{ "%.2f"|format(base_amount / 100) }}</span></p>
+    <p><strong>Grand Total:</strong> $<span id="review-grand-total">{{ "%.2f"|format((base_amount + total_amount) / 100) }}</span></p>
   </div>
   <form id="payment-form">
     <h2 class="text-danger">Personal Details</h2>
@@ -152,7 +152,7 @@
       ).toFixed(2);
     if (reviewGrandTotal)
       reviewGrandTotal.textContent = (
-        parseInt(urlParams.get("base_amount")) / 100
+        (parseInt(urlParams.get("base_amount")) + parseInt(urlParams.get("total_amount"))) / 100
       ).toFixed(2);
 
     const form = document.getElementById('payment-form');
