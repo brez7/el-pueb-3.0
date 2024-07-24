@@ -19,7 +19,6 @@ app.config["MAIL_USE_SSL"] = False
 
 mail = Mail(app)
 
-
 # Custom filter to format datetime
 @app.template_filter("strftime")
 def format_datetime(value, format="%m-%d-%Y"):
@@ -32,7 +31,7 @@ def format_datetime(value, format="%m-%d-%Y"):
 def home():
     return render_template("index.html")
 
-
+################################################  EVENT - DETAILS ######################################################
 @app.route("/event-details", methods=["GET", "POST"])
 def event_details():
     if request.method == "POST":
@@ -42,6 +41,7 @@ def event_details():
         return redirect(url_for("menu", people=people, date=date, time=time))
     return render_template("event_details.html")
 
+################################################  MENU ######################################################
 
 @app.route("/menu", methods=["GET", "POST"])
 def menu():
@@ -103,6 +103,7 @@ def menu():
     base_amount = int(people) * 1800
     return render_template("menu.html", people=people, base_amount=base_amount)
 
+################################################  CHECKOUT ######################################################
 
 @app.route("/checkout", methods=["GET", "POST"])
 def checkout():
@@ -177,6 +178,8 @@ def checkout():
         },
     )
 
+################################################  SUCCESS ######################################################
+
 
 @app.route("/success")
 def success():
@@ -195,8 +198,16 @@ def success():
     meat1 = request.args.get("meat1")
     meat2 = request.args.get("meat2")
     customer_email = request.args.get("email")
+    address = request.args.get("address")
+    city = request.args.get("city")
+    state = request.args.get("state")
+    zip_code = request.args.get("zip")
+    phone = request.args.get("phone")
 
-    # Prepare email content
+    # Calculate Grand Total
+    grand_total = int(base_amount) + int(total_amount)
+
+    # Prepare order details for the template
     order_details = {
         "people": people,
         "date": date,
@@ -207,6 +218,12 @@ def success():
         "meat1": meat1,
         "meat2": meat2,
         "customer_email": customer_email,
+        "address": address,
+        "city": city,
+        "state": state,
+        "zip": zip_code,
+        "phone": phone,
+        "grand_total": grand_total,
         "meat_choices": {
             "carne_asada": "Carne Asada",
             "chicken": "Chicken",
@@ -220,7 +237,18 @@ def success():
         sender="rbresnik@gmail.com",
         recipients=["rob@elpueblomex.com"],
     )
-    msg_to_restaurant.body = f"Order Details:\nPeople: {people}\nDate: {date.strftime('%m-%d-%Y')}\nTime: {time}\n"
+    msg_to_restaurant.body = (
+        f"Order Details:\n"
+        f"People: {people}\n"
+        f"Date: {date.strftime('%m-%d-%Y')}\n"
+        f"Time: {time}\n"
+        f"Address: {address}\n"
+        f"City: {city}\n"
+        f"State: {state}\n"
+        f"Zip: {zip_code}\n"
+        f"Phone: {phone}\n"
+        f"Grand Total: ${grand_total / 100:.2f}\n"
+    )
     for item in items:
         msg_to_restaurant.body += f"{item['name']} (x{item.get('quantity', 1)})"
         if "price" in item:
@@ -238,7 +266,19 @@ def success():
         sender="rbresnik@gmail.com",
         recipients=[customer_email],
     )
-    msg_to_customer.body = f"Thank you for your order!\n\nOrder Details:\nPeople: {people}\nDate: {date.strftime('%m-%d-%Y')}\nTime: {time}\n"
+    msg_to_customer.body = (
+        f"Thank you for your order!\n\n"
+        f"Order Details:\n"
+        f"People: {people}\n"
+        f"Date: {date.strftime('%m-%d-%Y')}\n"
+        f"Time: {time}\n"
+        f"Address: {address}\n"
+        f"City: {city}\n"
+        f"State: {state}\n"
+        f"Zip: {zip_code}\n"
+        f"Phone: {phone}\n"
+        f"Grand Total: ${grand_total / 100:.2f}\n"
+    )
     for item in items:
         msg_to_customer.body += f"{item['name']} (x{item.get('quantity', 1)})"
         if "price" in item:
@@ -252,6 +292,7 @@ def success():
 
     return render_template("summary.html", **order_details)
 
+################################################ END ######################################################
 
 if __name__ == "__main__":
     app.run(debug=True)
