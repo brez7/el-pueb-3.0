@@ -18,8 +18,9 @@
         <li>{{ item.name }} (x{{ item.quantity }}) - ${{ "%.2f"|format(item.price / 100) if 'price' in item else 'No Charge' }}</li>
       {% endfor %}
     </ul>
-    <p><strong>Total Amount for Additional Items:</strong> $<span id="review-total-amount">{{ "%.2f"|format(total_amount / 100) }}</span></p>
-    <p><strong>Grand Total:</strong> $<span id="review-grand-total">{{ "%.2f"|format((base_amount + total_amount) / 100) }}</span></p>
+    <p><strong>Sub-total:</strong> $<span id="review-sub-total">{{ "%.2f"|format(sub_total / 100) }}</span></p>
+    <p><strong>Tax (7.75%):</strong> $<span id="review-tax">{{ "%.2f"|format(tax / 100) }}</span></p>
+    <p><strong>Grand Total:</strong> $<span id="review-grand-total">{{ "%.2f"|format(grand_total / 100) }}</span></p>
   </div>
   <form id="payment-form">
     <h2 class="text-danger">Personal Details</h2>
@@ -85,6 +86,8 @@
     const reviewTime = document.getElementById("review-time");
     const reviewTotalAmount = document.getElementById("review-total-amount");
     const reviewBaseAmount = document.getElementById("review-base-amount");
+    const reviewSubTotal = document.getElementById("review-sub-total");
+    const reviewTax = document.getElementById("review-tax");
     const reviewGrandTotal = document.getElementById("review-grand-total");
 
     if (reviewPeople) reviewPeople.textContent = urlParams.get("people");
@@ -98,9 +101,17 @@
       reviewBaseAmount.textContent = (
         parseInt(urlParams.get("base_amount")) / 100
       ).toFixed(2);
+    if (reviewSubTotal)
+      reviewSubTotal.textContent = (
+        parseFloat(urlParams.get("sub_total")) / 100
+      ).toFixed(2);
+    if (reviewTax)
+      reviewTax.textContent = (
+        parseFloat(urlParams.get("tax")) / 100
+      ).toFixed(2);
     if (reviewGrandTotal)
       reviewGrandTotal.textContent = (
-        (parseInt(urlParams.get("base_amount")) + parseInt(urlParams.get("total_amount"))) / 100
+        parseFloat(urlParams.get("grand_total")) / 100
       ).toFixed(2);
 
     const form = document.getElementById('payment-form');
@@ -120,6 +131,9 @@
       const time = urlParams.get('time');
       const total_amount = parseInt(urlParams.get('total_amount'));  // Convert to integer
       const base_amount = parseInt(urlParams.get('base_amount'));    // Convert to integer
+      const sub_total = parseFloat(urlParams.get('sub_total'));      // Convert to float
+      const tax = parseFloat(urlParams.get('tax'));                  // Convert to float
+      const grand_total = parseFloat(urlParams.get('grand_total'));  // Convert to float
       const meat1 = urlParams.get('meat1');
       const meat2 = urlParams.get('meat2');
       const items = JSON.parse(decodeURIComponent(urlParams.get('items')));
@@ -141,6 +155,9 @@
           time: time,
           total_amount: total_amount,
           base_amount: base_amount,
+          sub_total: sub_total,
+          tax: tax,
+          grand_total: grand_total,
           meat1: meat1,
           meat2: meat2
         })
@@ -170,11 +187,11 @@
           document.getElementById('payment-result').textContent = error.message;
         } else if (paymentIntent.status === 'succeeded') {
           document.getElementById('payment-result').textContent = 'Payment successful!';
-          window.location.href = `/success?email=${encodeURIComponent(email)}&first_name=${encodeURIComponent(firstName)}&last_name=${encodeURIComponent(lastName)}&address=${encodeURIComponent(address)}&city=${encodeURIComponent(city)}&state=${encodeURIComponent(state)}&zip=${encodeURIComponent(zip)}&phone=${encodeURIComponent(phone)}&people=${encodeURIComponent(parseInt(people))}&date=${encodeURIComponent(date)}&time=${encodeURIComponent(time)}&total_amount=${encodeURIComponent(parseInt(total_amount))}&base_amount=${encodeURIComponent(parseInt(base_amount))}&meat1=${encodeURIComponent(meat1)}&meat2=${encodeURIComponent(meat2)}&items=${encodeURIComponent(JSON.stringify(items))}`;
+          window.location.href = `/success?email=${encodeURIComponent(email)}&first_name=${encodeURIComponent(firstName)}&last_name=${encodeURIComponent(lastName)}&address=${encodeURIComponent(address)}&city=${encodeURIComponent(city)}&state=${encodeURIComponent(state)}&zip=${encodeURIComponent(zip)}&phone=${encodeURIComponent(phone)}&people=${encodeURIComponent(parseInt(people))}&date=${encodeURIComponent(date)}&time=${encodeURIComponent(time)}&total_amount=${encodeURIComponent(parseInt(total_amount))}&base_amount=${encodeURIComponent(parseInt(base_amount))}&sub_total=${encodeURIComponent(parseFloat(sub_total))}&tax=${encodeURIComponent(parseFloat(tax))}&grand_total=${encodeURIComponent(parseFloat(grand_total))}&meat1=${encodeURIComponent(meat1)}&meat2=${encodeURIComponent(meat2)}&items=${encodeURIComponent(JSON.stringify(items))}`;
         }
       } else {
         document.getElementById('payment-result').textContent = 'Payment successful!';
-        window.location.href = `/success?email=${encodeURIComponent(email)}&first_name=${encodeURIComponent(firstName)}&last_name=${encodeURIComponent(lastName)}&address=${encodeURIComponent(address)}&city=${encodeURIComponent(city)}&state=${encodeURIComponent(state)}&zip=${encodeURIComponent(zip)}&phone=${encodeURIComponent(phone)}&people=${encodeURIComponent(people)}&date=${encodeURIComponent(date)}&time=${encodeURIComponent(time)}&total_amount=${encodeURIComponent(total_amount)}&base_amount=${encodeURIComponent(base_amount)}&meat1=${encodeURIComponent(meat1)}&meat2=${encodeURIComponent(meat2)}&items=${encodeURIComponent(JSON.stringify(items))}`;
+        window.location.href = `/success?email=${encodeURIComponent(email)}&first_name=${encodeURIComponent(firstName)}&last_name=${encodeURIComponent(lastName)}&address=${encodeURIComponent(address)}&city=${encodeURIComponent(city)}&state=${encodeURIComponent(state)}&zip=${encodeURIComponent(zip)}&phone=${encodeURIComponent(phone)}&people=${encodeURIComponent(people)}&date=${encodeURIComponent(date)}&time=${encodeURIComponent(time)}&total_amount=${encodeURIComponent(total_amount)}&base_amount=${encodeURIComponent(base_amount)}&sub_total=${encodeURIComponent(sub_total)}&tax=${encodeURIComponent(tax)}&grand_total=${encodeURIComponent(grand_total)}&meat1=${encodeURIComponent(meat1)}&meat2=${encodeURIComponent(meat2)}&items=${encodeURIComponent(JSON.stringify(items))}`;
       }
     });
   </script>

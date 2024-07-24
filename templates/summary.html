@@ -21,8 +21,8 @@
       <li>{{ item.name }} (x{{ item.quantity }}) - ${{ "%.2f"|format((item.price | int) / 100) if 'price' in item else 'No Charge' }}</li>
     {% endfor %}
   </ul>
-  <p><strong>Total Amount for Catering:</strong> ${{ "%.2f"|format((base_amount | int) / 100) }}</p>
-  <p><strong>Total Amount for Additional Items:</strong> ${{ "%.2f"|format((total_amount | int) / 100) }}</p>
-  <p><strong>Grand Total:</strong> ${{ "%.2f"|format(((base_amount | int) + (total_amount | int)) / 100) }}</p>
+  <p><strong>Sub-total:</strong> ${{ "%.2f"|format((sub_total | float) / 100) }}</p>
+  <p><strong>Tax (7.75%):</strong> ${{ "%.2f"|format((tax | float) / 100) }}</p>
+  <p><strong>Grand Total:</strong> ${{ "%.2f"|format((grand_total | float) / 100) }}</p>
 </div>
 {% endblock %}

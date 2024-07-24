@@ -1,4 +1,3 @@
-# app.py
 from flask import Flask, render_template, request, redirect, url_for, jsonify
 import stripe
 from flask_mail import Mail, Message
@@ -95,12 +94,18 @@ def menu():
         time = request.args["time"]
         base_amount = int(people) * 1800  # Base amount calculation
         total_amount = sum(item["price"] * item["quantity"] for item in add_ons)
+        sub_total = base_amount + total_amount
+        tax = sub_total * 0.0775
+        grand_total = sub_total + tax
 
         return redirect(
             url_for(
                 "checkout",
                 total_amount=total_amount,
                 base_amount=base_amount,
+                sub_total=sub_total,
+                tax=tax,
+                grand_total=grand_total,
                 people=people,
                 date=date,
                 time=time,
@@ -165,6 +170,9 @@ def checkout():
             request.args.get("total_amount")
         )  # Ensure this is an integer
         base_amount = int(request.args.get("base_amount"))  # Ensure this is an integer
+        sub_total = float(request.args.get("sub_total"))
+        tax = float(request.args.get("tax"))
+        grand_total = float(request.args.get("grand_total"))
     except Exception as e:
         print(
             f"Error processing request parameters: {e}"
@@ -192,6 +200,9 @@ def checkout():
         items=formatted_items,
         total_amount=total_amount,
         base_amount=base_amount,
+        sub_total=sub_total,
+        tax=tax,
+        grand_total=grand_total,
         meat_choices=meat_choices,
     )
 
@@ -211,6 +222,9 @@ def success():
         items = []
     total_amount = request.args.get("total_amount")
     base_amount = request.args.get("base_amount")
+    sub_total = request.args.get("sub_total")
+    tax = request.args.get("tax")
+    grand_total = request.args.get("grand_total")
     meat1 = request.args.get("meat1")
     meat2 = request.args.get("meat2")
     customer_email = request.args.get("email")
@@ -219,9 +233,6 @@ def success():
     state = request.args.get("state")
     zip_code = request.args.get("zip")
     phone = request.args.get("phone")
-
-    # Calculate Grand Total
-    grand_total = int(base_amount) + int(total_amount)
 
     # Filter out primary meat choices from additional items
     formatted_items = [
@@ -242,6 +253,9 @@ def success():
         "items": formatted_items,
         "total_amount": total_amount,
         "base_amount": base_amount,
+        "sub_total": sub_total,
+        "tax": tax,
+        "grand_total": grand_total,
         "meat1": meat_choices.get(meat1, meat1),
         "meat2": meat_choices.get(meat2, meat2),
         "customer_email": customer_email,
@@ -250,7 +264,6 @@ def success():
         "state": state,
         "zip": zip_code,
         "phone": phone,
-        "grand_total": grand_total,
         "meat_choices": meat_choices,
     }
 
@@ -274,7 +287,9 @@ def success():
         f"Second Meat Choice: {meat_choices.get(meat2, meat2)}\n"
         f"{''.join(format_item(item) for item in formatted_items)}"
         f"Base Amount: ${int(base_amount) / 100:.2f}\n"
-        f"Grand Total: ${grand_total / 100:.2f}\n"
+        f"Sub-total: ${float(sub_total) / 100:.2f}\n"
+        f"Tax: ${float(tax) / 100:.2f}\n"
+        f"Grand Total: ${float(grand_total) / 100:.2f}\n"
     )
 
     # Send email to the customer
