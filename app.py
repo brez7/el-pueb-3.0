@@ -32,6 +32,12 @@ def format_datetime(value, format="%m-%d-%Y"):
 def home():
     return render_template("index.html")
 
+meat_choices = {
+    "carne_asada": "Carne Asada",
+    "chicken": "Chicken",
+    "adobada": "Adobada",
+    # Add more mappings if needed
+}
 
 ################################################  EVENT - DETAILS ######################################################
 @app.route("/event-details", methods=["GET", "POST"])
@@ -56,7 +62,7 @@ def menu():
         if additional_meat_choice:
             add_ons.append(
                 {
-                    "name": f"Additional Meat Choice: {additional_meat_choice}",
+                    "name": f"Additional Meat Choice: {meat_choices.get(additional_meat_choice, additional_meat_choice)}",
                     "price": 3000,
                     "quantity": 1,
                 }
@@ -78,8 +84,8 @@ def menu():
             add_ons.append({"name": "Add Onions/Cilantro", "price": 0, "quantity": 1})
 
         items = [
-            {"name": meat1, "price": 0, "quantity": 1},
-            {"name": meat2, "price": 0, "quantity": 1},
+            {"name": meat_choices.get(meat1, meat1), "price": 0, "quantity": 1},
+            {"name": meat_choices.get(meat2, meat2), "price": 0, "quantity": 1},
         ] + add_ons
 
         people = request.args["people"]
@@ -163,23 +169,26 @@ def checkout():
         )  # Log the error to the console
         return jsonify({"error": str(e)}), 400
 
+    formatted_items = [
+        {
+            "name": meat_choices.get(item["name"], item["name"]),
+            "price": item["price"],
+            "quantity": item["quantity"],
+        }
+        for item in items
+    ]
+
     return render_template(
         "checkout.html",
         people=people,
         date=date,
         time=time,
-        meat1=meat1,
-        meat2=meat2,
-        items=[
-            item for item in items if item["name"] != meat1 and item["name"] != meat2
-        ],
+        meat1=meat_choices.get(meat1, meat1),
+        meat2=meat_choices.get(meat2, meat2),
+        items=formatted_items,
         total_amount=total_amount,
         base_amount=base_amount,
-        meat_choices={
-            "carne_asada": "Carne Asada",
-            "chicken": "Chicken",
-            "adobada": "Adobada",
-        },
+        meat_choices=meat_choices,
     )
 
 
@@ -216,12 +225,17 @@ def success():
         "date": date,
         "time": time,
         "items": [
-            item for item in items if item["name"] != meat1 and item["name"] != meat2
+            {
+                "name": meat_choices.get(item["name"], item["name"]),
+                "price": item["price"],
+                "quantity": item["quantity"],
+            }
+            for item in items
         ],
         "total_amount": total_amount,
         "base_amount": base_amount,
-        "meat1": meat1,
-        "meat2": meat2,
+        "meat1": meat_choices.get(meat1, meat1),
+        "meat2": meat_choices.get(meat2, meat2),
         "customer_email": customer_email,
         "address": address,
         "city": city,
@@ -229,11 +243,7 @@ def success():
         "zip": zip_code,
         "phone": phone,
         "grand_total": grand_total,
-        "meat_choices": {
-            "carne_asada": "Carne Asada",
-            "chicken": "Chicken",
-            "adobada": "Adobada",
-        },
+        "meat_choices": meat_choices,
     }
 
     # Send email to the restaurant
@@ -255,15 +265,14 @@ def success():
         f"Grand Total: ${grand_total / 100:.2f}\n"
     )
     for item in items:
-        if item["name"] != meat1 and item["name"] != meat2:
-            msg_to_restaurant.body += f"{item['name']} (x{item.get('quantity', 1)})"
-            if "price" in item:
-                msg_to_restaurant.body += f" - ${int(item['price']) / 100:.2f}\n"
-            else:
-                msg_to_restaurant.body += "\n"
+        msg_to_restaurant.body += f"{meat_choices.get(item['name'], item['name'])} (x{item.get('quantity', 1)})"
+        if "price" in item:
+            msg_to_restaurant.body += f" - ${int(item['price']) / 100:.2f}\n"
+        else:
+            msg_to_restaurant.body += "\n"
     msg_to_restaurant.body += f"Base Amount: ${int(base_amount) / 100:.2f}\n"
-    msg_to_restaurant.body += f"First Meat Choice: {meat1}\n"
-    msg_to_restaurant.body += f"Second Meat Choice: {meat2}\n"
+    msg_to_restaurant.body += f"First Meat Choice: {meat_choices.get(meat1, meat1)}\n"
+    msg_to_restaurant.body += f"Second Meat Choice: {meat_choices.get(meat2, meat2)}\n"
     mail.send(msg_to_restaurant)
 
     # Send email to the customer
@@ -286,15 +295,14 @@ def success():
         f"Grand Total: ${grand_total / 100:.2f}\n"
     )
     for item in items:
-        if item["name"] != meat1 and item["name"] != meat2:
-            msg_to_customer.body += f"{item['name']} (x{item.get('quantity', 1)})"
-            if "price" in item:
-                msg_to_customer.body += f" - ${int(item['price']) / 100:.2f}\n"
-            else:
-                msg_to_customer.body += "\n"
+        msg_to_customer.body += f"{meat_choices.get(item['name'], item['name'])} (x{item.get('quantity', 1)})"
+        if "price" in item:
+            msg_to_customer.body += f" - ${int(item['price']) / 100:.2f}\n"
+        else:
+            msg_to_customer.body += "\n"
     msg_to_customer.body += f"Base Amount: ${int(base_amount) / 100:.2f}\n"
-    msg_to_customer.body += f"First Meat Choice: {meat1}\n"
-    msg_to_customer.body += f"Second Meat Choice: {meat2}\n"
+    msg_to_customer.body += f"First Meat Choice: {meat_choices.get(meat1, meat1)}\n"
+    msg_to_customer.body += f"Second Meat Choice: {meat_choices.get(meat2, meat2)}\n"
     mail.send(msg_to_customer)
 
     return render_template("summary.html", **order_details)
