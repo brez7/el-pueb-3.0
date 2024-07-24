@@ -15,7 +15,9 @@
     <p><strong>Additional Items:</strong></p>
     <ul>
       {% for item in items %}
-        <li>{{ item.name }} - ${{ "%.2f"|format(item.price / 100) if 'price' in item else 'No Charge' }}</li>
+        {% if item.name != meat1 and item.name != meat2 %}
+          <li>{{ item.name }} - ${{ "%.2f"|format(item.price / 100) if 'price' in item else 'No Charge' }}</li>
+        {% endif %}
       {% endfor %}
     </ul>
     <p><strong>Total Amount for Additional Items:</strong> $<span id="review-total-amount">{{ "%.2f"|format(total_amount / 100) }}</span></p>
@@ -170,9 +172,7 @@
           document.getElementById('payment-result').textContent = error.message;
         } else if (paymentIntent.status === 'succeeded') {
           document.getElementById('payment-result').textContent = 'Payment successful!';
-window.location.href = `/success?email=${encodeURIComponent(email)}&first_name=${encodeURIComponent(firstName)}&last_name=${encodeURIComponent(lastName)}&address=${encodeURIComponent(address)}&city=${encodeURIComponent(city)}&state=${encodeURIComponent(state)}&zip=${encodeURIComponent(zip)}&phone=${encodeURIComponent(phone)}&people=${encodeURIComponent(parseInt(people))}&date=${encodeURIComponent(date)}&time=${encodeURIComponent(time)}&total_amount=${encodeURIComponent(parseInt(total_amount))}&base_amount=${encodeURIComponent(parseInt(base_amount))}&meat1=${encodeURIComponent(meat1)}&meat2=${encodeURIComponent(meat2)}&items=${encodeURIComponent(JSON.stringify(items))}`;
-
-
+          window.location.href = `/success?email=${encodeURIComponent(email)}&first_name=${encodeURIComponent(firstName)}&last_name=${encodeURIComponent(lastName)}&address=${encodeURIComponent(address)}&city=${encodeURIComponent(city)}&state=${encodeURIComponent(state)}&zip=${encodeURIComponent(zip)}&phone=${encodeURIComponent(phone)}&people=${encodeURIComponent(parseInt(people))}&date=${encodeURIComponent(date)}&time=${encodeURIComponent(time)}&total_amount=${encodeURIComponent(parseInt(total_amount))}&base_amount=${encodeURIComponent(parseInt(base_amount))}&meat1=${encodeURIComponent(meat1)}&meat2=${encodeURIComponent(meat2)}&items=${encodeURIComponent(JSON.stringify(items))}`;
         }
       } else {
         document.getElementById('payment-result').textContent = 'Payment successful!';

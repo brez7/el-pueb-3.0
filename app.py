@@ -19,6 +19,7 @@ app.config["MAIL_USE_SSL"] = False
 
 mail = Mail(app)
 
+
 # Custom filter to format datetime
 @app.template_filter("strftime")
 def format_datetime(value, format="%m-%d-%Y"):
@@ -31,6 +32,7 @@ def format_datetime(value, format="%m-%d-%Y"):
 def home():
     return render_template("index.html")
 
+
 ################################################  EVENT - DETAILS ######################################################
 @app.route("/event-details", methods=["GET", "POST"])
 def event_details():
@@ -41,8 +43,8 @@ def event_details():
         return redirect(url_for("menu", people=people, date=date, time=time))
     return render_template("event_details.html")
 
-################################################  MENU ######################################################
 
+################################################  MENU ######################################################
 @app.route("/menu", methods=["GET", "POST"])
 def menu():
     if request.method == "POST":
@@ -103,8 +105,8 @@ def menu():
     base_amount = int(people) * 1800
     return render_template("menu.html", people=people, base_amount=base_amount)
 
-################################################  CHECKOUT ######################################################
 
+################################################  CHECKOUT ######################################################
 @app.route("/checkout", methods=["GET", "POST"])
 def checkout():
     if request.method == "POST":
@@ -168,7 +170,9 @@ def checkout():
         time=time,
         meat1=meat1,
         meat2=meat2,
-        items=items,
+        items=[
+            item for item in items if item["name"] != meat1 and item["name"] != meat2
+        ],
         total_amount=total_amount,
         base_amount=base_amount,
         meat_choices={
@@ -178,9 +182,8 @@ def checkout():
         },
     )
 
+
 ################################################  SUCCESS ######################################################
-
-
 @app.route("/success")
 def success():
     # Retrieve order details from query parameters
@@ -212,7 +215,9 @@ def success():
         "people": people,
         "date": date,
         "time": time,
-        "items": items,
+        "items": [
+            item for item in items if item["name"] != meat1 and item["name"] != meat2
+        ],
         "total_amount": total_amount,
         "base_amount": base_amount,
         "meat1": meat1,
@@ -250,11 +255,12 @@ def success():
         f"Grand Total: ${grand_total / 100:.2f}\n"
     )
     for item in items:
-        msg_to_restaurant.body += f"{item['name']} (x{item.get('quantity', 1)})"
-        if "price" in item:
-            msg_to_restaurant.body += f" - ${int(item['price']) / 100:.2f}\n"
-        else:
-            msg_to_restaurant.body += "\n"
+        if item["name"] != meat1 and item["name"] != meat2:
+            msg_to_restaurant.body += f"{item['name']} (x{item.get('quantity', 1)})"
+            if "price" in item:
+                msg_to_restaurant.body += f" - ${int(item['price']) / 100:.2f}\n"
+            else:
+                msg_to_restaurant.body += "\n"
     msg_to_restaurant.body += f"Base Amount: ${int(base_amount) / 100:.2f}\n"
     msg_to_restaurant.body += f"First Meat Choice: {meat1}\n"
     msg_to_restaurant.body += f"Second Meat Choice: {meat2}\n"
@@ -280,11 +286,12 @@ def success():
         f"Grand Total: ${grand_total / 100:.2f}\n"
     )
     for item in items:
-        msg_to_customer.body += f"{item['name']} (x{item.get('quantity', 1)})"
-        if "price" in item:
-            msg_to_customer.body += f" - ${int(item['price']) / 100:.2f}\n"
-        else:
-            msg_to_customer.body += "\n"
+        if item["name"] != meat1 and item["name"] != meat2:
+            msg_to_customer.body += f"{item['name']} (x{item.get('quantity', 1)})"
+            if "price" in item:
+                msg_to_customer.body += f" - ${int(item['price']) / 100:.2f}\n"
+            else:
+                msg_to_customer.body += "\n"
     msg_to_customer.body += f"Base Amount: ${int(base_amount) / 100:.2f}\n"
     msg_to_customer.body += f"First Meat Choice: {meat1}\n"
     msg_to_customer.body += f"Second Meat Choice: {meat2}\n"
@@ -292,7 +299,7 @@ def success():
 
     return render_template("summary.html", **order_details)
 
-################################################ END ######################################################
 
+################################################ END ######################################################
 if __name__ == "__main__":
     app.run(debug=True)

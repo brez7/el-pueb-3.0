@@ -1,4 +1,4 @@
- {% extends "base.html" %}
+{% extends "base.html" %}
 {% block title %}Order Summary{% endblock %}
 {% block content %}
 <div class="container" style="background: transparent;">
@@ -18,7 +18,9 @@
   <p><strong>Additional Items:</strong></p>
   <ul>
     {% for item in items %}
-      <li>{{ item.name }} - ${{ "%.2f"|format((item.price | int) / 100) if 'price' in item else 'No Charge' }}</li>
+      {% if item.name != meat1 and item.name != meat2 %}
+        <li>{{ item.name }} - ${{ "%.2f"|format((item.price | int) / 100) if 'price' in item else 'No Charge' }}</li>
+      {% endif %}
     {% endfor %}
   </ul>
   <p><strong>Total Amount for Catering:</strong> ${{ "%.2f"|format((base_amount | int) / 100) }}</p>
