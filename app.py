@@ -1,3 +1,4 @@
+# app.py
 from flask import Flask, render_template, request, redirect, url_for, jsonify
 import stripe
 from flask_mail import Mail, Message
@@ -19,6 +20,13 @@ app.config["MAIL_USE_SSL"] = False
 
 mail = Mail(app)
 
+meat_choices = {
+    "carne_asada": "Carne Asada",
+    "chicken": "Chicken",
+    "adobada": "Adobada",
+    # Add more mappings if needed
+}
+
 
 # Custom filter to format datetime
 @app.template_filter("strftime")
@@ -32,12 +40,6 @@ def format_datetime(value, format="%m-%d-%Y"):
 def home():
     return render_template("index.html")
 
-meat_choices = {
-    "carne_asada": "Carne Asada",
-    "chicken": "Chicken",
-    "adobada": "Adobada",
-    # Add more mappings if needed
-}
 
 ################################################  EVENT - DETAILS ######################################################
 @app.route("/event-details", methods=["GET", "POST"])
@@ -59,7 +61,7 @@ def menu():
         add_ons = []
 
         additional_meat_choice = request.form.get("additional_meat_choice")
-        if additional_meat_choice:
+        if additional_meat_choice and additional_meat_choice not in {meat1, meat2}:
             add_ons.append(
                 {
                     "name": f"Additional Meat Choice: {meat_choices.get(additional_meat_choice, additional_meat_choice)}",
@@ -169,6 +171,7 @@ def checkout():
         )  # Log the error to the console
         return jsonify({"error": str(e)}), 400
 
+    # Filter out primary meat choices from additional items
     formatted_items = [
         {
             "name": meat_choices.get(item["name"], item["name"]),
@@ -176,6 +179,7 @@ def checkout():
             "quantity": item["quantity"],
         }
         for item in items
+        if item["name"] not in {meat_choices.get(meat1), meat_choices.get(meat2)}
     ]
 
     return render_template(
@@ -219,19 +223,23 @@ def success():
     # Calculate Grand Total
     grand_total = int(base_amount) + int(total_amount)
 
+    # Filter out primary meat choices from additional items
+    formatted_items = [
+        {
+            "name": meat_choices.get(item["name"], item["name"]),
+            "price": item["price"],
+            "quantity": item["quantity"],
+        }
+        for item in items
+        if item["name"] not in {meat_choices.get(meat1), meat_choices.get(meat2)}
+    ]
+
     # Prepare order details for the template
     order_details = {
         "people": people,
         "date": date,
         "time": time,
-        "items": [
-            {
-                "name": meat_choices.get(item["name"], item["name"]),
-                "price": item["price"],
-                "quantity": item["quantity"],
-            }
-            for item in items
-        ],
+        "items": formatted_items,
         "total_amount": total_amount,
         "base_amount": base_amount,
         "meat1": meat_choices.get(meat1, meat1),
@@ -264,8 +272,8 @@ def success():
         f"Phone: {phone}\n"
         f"Grand Total: ${grand_total / 100:.2f}\n"
     )
-    for item in items:
-        msg_to_restaurant.body += f"{meat_choices.get(item['name'], item['name'])} (x{item.get('quantity', 1)})"
+    for item in formatted_items:
+        msg_to_restaurant.body += f"{item['name']} (x{item.get('quantity', 1)})"
         if "price" in item:
             msg_to_restaurant.body += f" - ${int(item['price']) / 100:.2f}\n"
         else:
@@ -294,8 +302,8 @@ def success():
         f"Phone: {phone}\n"
         f"Grand Total: ${grand_total / 100:.2f}\n"
     )
-    for item in items:
-        msg_to_customer.body += f"{meat_choices.get(item['name'], item['name'])} (x{item.get('quantity', 1)})"
+    for item in formatted_items:
+        msg_to_customer.body += f"{item['name']} (x{item.get('quantity', 1)})"
         if "price" in item:
             msg_to_customer.body += f" - ${int(item['price']) / 100:.2f}\n"
         else:

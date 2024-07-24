@@ -13,14 +13,12 @@
   <p><strong>Zip:</strong> {{ zip }}</p>
   <p><strong>Phone Number:</strong> {{ phone }}</p>
   <H2>Order Details</h2>
-  <p><strong>First Choice of Meat:</strong> {{ meat_choices[meat1] }}</p>
-  <p><strong>Second Choice of Meat:</strong> {{ meat_choices[meat2] }}</p>
+  <p><strong>First Choice of Meat:</strong> {{ meat1 }}</p>
+  <p><strong>Second Choice of Meat:</strong> {{ meat2 }}</p>
   <p><strong>Additional Items:</strong></p>
   <ul>
     {% for item in items %}
-      {% if item.name != meat1 and item.name != meat2 %}
-        <li>{{ item.name }} - ${{ "%.2f"|format((item.price | int) / 100) if 'price' in item else 'No Charge' }}</li>
-      {% endif %}
+      <li>{{ item.name }} - ${{ "%.2f"|format((item.price | int) / 100) if 'price' in item else 'No Charge' }}</li>
     {% endfor %}
   </ul>
   <p><strong>Total Amount for Catering:</strong> ${{ "%.2f"|format((base_amount | int) / 100) }}</p>
