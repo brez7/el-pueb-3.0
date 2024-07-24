@@ -254,42 +254,12 @@ def success():
         "meat_choices": meat_choices,
     }
 
-    # Send email to the restaurant
-    msg_to_restaurant = Message(
-        "New Catering Order",
-        sender="rbresnik@gmail.com",
-        recipients=["rob@elpueblomex.com"],
-    )
-    msg_to_restaurant.body = (
-        f"Order Details:\n"
-        f"People: {people}\n"
-        f"Date: {date.strftime('%m-%d-%Y')}\n"
-        f"Time: {time}\n"
-        f"Address: {address}\n"
-        f"City: {city}\n"
-        f"State: {state}\n"
-        f"Zip: {zip_code}\n"
-        f"Phone: {phone}\n"
-        f"Grand Total: ${grand_total / 100:.2f}\n"
-    )
-    for item in formatted_items:
-        msg_to_restaurant.body += f"{item['name']} (x{item.get('quantity', 1)})"
-        if "price" in item:
-            msg_to_restaurant.body += f" - ${int(item['price']) / 100:.2f}\n"
-        else:
-            msg_to_restaurant.body += "\n"
-    msg_to_restaurant.body += f"Base Amount: ${int(base_amount) / 100:.2f}\n"
-    msg_to_restaurant.body += f"First Meat Choice: {meat_choices.get(meat1, meat1)}\n"
-    msg_to_restaurant.body += f"Second Meat Choice: {meat_choices.get(meat2, meat2)}\n"
-    mail.send(msg_to_restaurant)
+    # Format email body
+    def format_item(item):
+        price = f" - ${item['price'] / 100:.2f}" if item["price"] > 0 else ""
+        return f"{item['name']} (x{item.get('quantity', 1)}){price}\n"
 
-    # Send email to the customer
-    msg_to_customer = Message(
-        "Your Catering Order Confirmation",
-        sender="rbresnik@gmail.com",
-        recipients=[customer_email],
-    )
-    msg_to_customer.body = (
+    email_body = (
         f"Thank you for your order!\n\n"
         f"Order Details:\n"
         f"People: {people}\n"
@@ -299,19 +269,31 @@ def success():
         f"City: {city}\n"
         f"State: {state}\n"
         f"Zip: {zip_code}\n"
-        f"Phone: {phone}\n"
+        f"Phone: {phone}\n\n"
+        f"First Meat Choice: {meat_choices.get(meat1, meat1)}\n"
+        f"Second Meat Choice: {meat_choices.get(meat2, meat2)}\n"
+        f"{''.join(format_item(item) for item in formatted_items)}"
+        f"Base Amount: ${int(base_amount) / 100:.2f}\n"
         f"Grand Total: ${grand_total / 100:.2f}\n"
     )
-    for item in formatted_items:
-        msg_to_customer.body += f"{item['name']} (x{item.get('quantity', 1)})"
-        if "price" in item:
-            msg_to_customer.body += f" - ${int(item['price']) / 100:.2f}\n"
-        else:
-            msg_to_customer.body += "\n"
-    msg_to_customer.body += f"Base Amount: ${int(base_amount) / 100:.2f}\n"
-    msg_to_customer.body += f"First Meat Choice: {meat_choices.get(meat1, meat1)}\n"
-    msg_to_customer.body += f"Second Meat Choice: {meat_choices.get(meat2, meat2)}\n"
+
+    # Send email to the customer
+    msg_to_customer = Message(
+        "Your Catering Order Confirmation",
+        sender="rbresnik@gmail.com",
+        recipients=[customer_email],
+    )
+    msg_to_customer.body = email_body
     mail.send(msg_to_customer)
+
+    # Send email to the restaurant
+    msg_to_restaurant = Message(
+        "New Catering Order",
+        sender="rbresnik@gmail.com",
+        recipients=["rob@elpueblomex.com"],
+    )
+    msg_to_restaurant.body = email_body
+    mail.send(msg_to_restaurant)
 
     return render_template("summary.html", **order_details)
 
