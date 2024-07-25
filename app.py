@@ -11,9 +11,7 @@ stripe.api_key = "sk_test_51HMJ15LkC2vPsGwFJOABaLMeVM3Wzvfa9TaHFtWbYwBw2G3mwwV76
 app.config["MAIL_SERVER"] = "smtp.gmail.com"
 app.config["MAIL_PORT"] = 587
 app.config["MAIL_USERNAME"] = "rbresnik@gmail.com"
-app.config["MAIL_PASSWORD"] = (
-    "dzybveqbvyjqbtch"  # Use the provided app-specific password
-)
+app.config["MAIL_PASSWORD"] = "dzybveqbvyjqbtch"  # Use the provided app-specific password
 app.config["MAIL_USE_TLS"] = True
 app.config["MAIL_USE_SSL"] = False
 
@@ -26,7 +24,6 @@ meat_choices = {
     # Add more mappings if needed
 }
 
-
 # Custom filter to format datetime
 @app.template_filter("strftime")
 def format_datetime(value, format="%m-%d-%Y"):
@@ -34,11 +31,9 @@ def format_datetime(value, format="%m-%d-%Y"):
         return ""
     return value.strftime(format)
 
-
 @app.route("/")
 def home():
     return render_template("index.html")
-
 
 ################################################  EVENT - DETAILS ######################################################
 @app.route("/event-details", methods=["GET", "POST"])
@@ -49,7 +44,6 @@ def event_details():
         time = request.form["time"]
         return redirect(url_for("menu", people=people, date=date, time=time))
     return render_template("event_details.html")
-
 
 ################################################  MENU ######################################################
 @app.route("/menu", methods=["GET", "POST"])
@@ -149,16 +143,17 @@ def checkout():
                 )
                 return jsonify({"clientSecret": payment_intent["client_secret"]})
             else:
-                # No payment intent needed, but return a dummy client secret for consistency
                 return jsonify({"clientSecret": "dummy_client_secret"})
         except Exception as e:
-            print(f"Error creating payment intent: {e}")  # Log the error to the console
+            print(f"Error creating payment intent: {e}")
             return jsonify({"error": str(e)}), 500
 
     try:
         people = request.args.get("people")
         date = datetime.strptime(request.args.get("date"), "%Y-%m-%d")
         time = request.args.get("time")
+        first_name = request.form.get("first_name")
+        last_name = request.form.get("last_name")
         meat1 = request.args.get("meat1")
         meat2 = request.args.get("meat2")
         items = request.args.get("items")
@@ -166,20 +161,15 @@ def checkout():
             items = []
         else:
             items = json.loads(items)
-        total_amount = int(
-            request.args.get("total_amount")
-        )  # Ensure this is an integer
-        base_amount = int(request.args.get("base_amount"))  # Ensure this is an integer
+        total_amount = int(request.args.get("total_amount"))
+        base_amount = int(request.args.get("base_amount"))
         sub_total = float(request.args.get("sub_total"))
         tax = float(request.args.get("tax"))
         grand_total = float(request.args.get("grand_total"))
     except Exception as e:
-        print(
-            f"Error processing request parameters: {e}"
-        )  # Log the error to the console
+        print(f"Error processing request parameters: {e}")
         return jsonify({"error": str(e)}), 400
 
-    # Filter out primary meat choices from additional items
     formatted_items = [
         {
             "name": meat_choices.get(item["name"], item["name"]),
@@ -195,6 +185,8 @@ def checkout():
         people=people,
         date=date,
         time=time,
+        first_name=first_name,
+        last_name=last_name,
         meat1=meat_choices.get(meat1, meat1),
         meat2=meat_choices.get(meat2, meat2),
         items=formatted_items,
@@ -210,7 +202,6 @@ def checkout():
 ################################################  SUCCESS ######################################################
 @app.route("/success")
 def success():
-    # Retrieve order details from query parameters
     people = request.args.get("people")
     date = request.args.get("date")
     date = datetime.strptime(date, "%Y-%m-%d")
@@ -228,13 +219,14 @@ def success():
     meat1 = request.args.get("meat1")
     meat2 = request.args.get("meat2")
     customer_email = request.args.get("email")
+    first_name = request.args.get("first_name")
+    last_name = request.args.get("last_name")
     address = request.args.get("address")
     city = request.args.get("city")
     state = request.args.get("state")
     zip_code = request.args.get("zip")
     phone = request.args.get("phone")
 
-    # Filter out primary meat choices from additional items
     formatted_items = [
         {
             "name": meat_choices.get(item["name"], item["name"]),
@@ -245,7 +237,6 @@ def success():
         if item["name"] not in {meat_choices.get(meat1), meat_choices.get(meat2)}
     ]
 
-    # Prepare order details for the template
     order_details = {
         "people": people,
         "date": date,
@@ -259,6 +250,8 @@ def success():
         "meat1": meat_choices.get(meat1, meat1),
         "meat2": meat_choices.get(meat2, meat2),
         "customer_email": customer_email,
+        "first_name": first_name,
+        "last_name": last_name,
         "address": address,
         "city": city,
         "state": state,
@@ -267,30 +260,75 @@ def success():
         "meat_choices": meat_choices,
     }
 
-    # Format email body
     def format_item(item):
-        price = f" - ${item['price'] / 100:.2f}" if item["price"] > 0 else ""
-        return f"{item['name']} (x{item.get('quantity', 1)}){price}\n"
+        price = f"${item['price'] / 100:.2f}" if item["price"] > 0 else ""
+        return f"<tr><td style='font-weight:bold; padding-right: 5px;'>{item['name']}</td><td>{price}</td></tr>"
 
-    email_body = (
-        f"Thank you for your order!\n\n"
-        f"Order Details:\n"
-        f"People: {people}\n"
-        f"Date: {date.strftime('%m-%d-%Y')}\n"
-        f"Time: {time}\n"
-        f"Address: {address}\n"
-        f"City: {city}\n"
-        f"State: {state}\n"
-        f"Zip: {zip_code}\n"
-        f"Phone: {phone}\n\n"
-        f"First Meat Choice: {meat_choices.get(meat1, meat1)}\n"
-        f"Second Meat Choice: {meat_choices.get(meat2, meat2)}\n"
-        f"{''.join(format_item(item) for item in formatted_items)}"
-        f"Base Amount: ${int(base_amount) / 100:.2f}\n"
-        f"Sub-total: ${float(sub_total) / 100:.2f}\n"
-        f"Tax: ${float(tax) / 100:.2f}\n"
-        f"Grand Total: ${float(grand_total) / 100:.2f}\n"
-    )
+    customer_email_body = f"""
+    <html>
+    <body>
+    <h1>El Pueblo Mexican Food Catering Order</h1>
+    <h2>Thank you for your order!</h2>
+    <table style="width:50%; border-collapse:collapse;">
+      <tr><th colspan="2" style="text-align:left;">ORDER RECEIPT</th></tr>
+      <tr><td colspan="2" style="text-align:left;">Order Details:</td></tr>
+      <tr><td style="font-weight:bold;text-align:left; padding-right: 5px;">First Name:</td><td style="text-align:left;">{first_name}</td></tr>
+      <tr><td style="font-weight:bold;text-align:left; padding-right: 5px;">Last Name:</td><td style="text-align:left;">{last_name}</td></tr>
+      <tr><td style="font-weight:bold;text-align:left; padding-right: 5px;">People:</td><td style="text-align:left;">{people}</td></tr>
+      <tr><td style="font-weight:bold;text-align:left; padding-right: 5px;">Date:</td><td style="text-align:left;">{date.strftime('%m-%d-%Y')}</td></tr>
+      <tr><td style="font-weight:bold;text-align:left; padding-right: 5px;">Time:</td><td style="text-align:left;">{time}</td></tr>
+      <tr><td style="font-weight:bold;text-align:left; padding-right: 5px;">Address:</td><td style="text-align:left;">{address}</td></tr>
+      <tr><td style="font-weight:bold;text-align:left; padding-right: 5px;">City:</td><td style="text-align:left;">{city}</td></tr>
+      <tr><td style="font-weight:bold;text-align:left; padding-right: 5px;">State:</td><td style="text-align:left;">{state}</td></tr>
+      <tr><td style="font-weight:bold;text-align:left; padding-right: 5px;">Zip:</td><td style="text-align:left;">{zip_code}</td></tr>
+      <tr><td style="font-weight:bold;text-align:left; padding-right: 5px;">Phone:</td><td style="text-align:left;">{phone}</td></tr>
+      <tr><td colspan="2" style="text-align:left;">Items Ordered:</td></tr>
+      <tr><td style="font-weight:bold;text-align:left; padding-right: 5px;">First Meat Choice:</td><td style="text-align:left;">{meat_choices.get(meat1, meat1)}</td></tr>
+      <tr><td style="font-weight:bold;text-align:left; padding-right: 5px;">Second Meat Choice:</td><td style="text-align:left;">{meat_choices.get(meat2, meat2)}</td></tr>
+      <tr><td colspan="2" style="text-align:left;">Additional Items:</td></tr>
+      {''.join(format_item(item) for item in formatted_items)}
+      <tr><td colspan="2" style="text-align:left;">Summary:</td></tr>
+      <tr><td style="font-weight:bold;text-align:left; padding-right: 5px;">Base Amount:</td><td style="text-align:left;">${int(base_amount) / 100:.2f}</td></tr>
+      <tr><td style="font-weight:bold;text-align:left; padding-right: 5px;">Sub-total:</td><td style="text-align:left;">${float(sub_total) / 100:.2f}</td></tr>
+      <tr><td style="font-weight:bold;text-align:left; padding-right: 5px;">Tax (7.75%):</td><td style="text-align:left;">${float(tax) / 100:.2f}</td></tr>
+      <tr><td style="font-weight:bold;text-align:left; padding-right: 5px;">Grand Total:</td><td style="text-align:left;">${float(grand_total) / 100:.2f}</td></tr>
+    </table>
+    <p>Thank you for choosing El Pueblo Mexican Food for your catering needs!</p>
+    </body>
+    </html>
+    """
+
+    restaurant_email_body = f"""
+    <html>
+    <body>
+    <h2>Order Details for {first_name} {last_name} </h2>
+    <table style="width:50%; border-collapse:collapse;">
+      <tr><th colspan="2" style="text-align:left;">ORDER RECEIPT</th></tr>
+      <tr><td colspan="2" style="text-align:left;">Order Details:</td></tr>
+      <tr><td style="font-weight:bold;text-align:left; padding-right: 5px;">First Name:</td><td style="text-align:left;">{first_name}</td></tr>
+      <tr><td style="font-weight:bold;text-align:left; padding-right: 5px;">Last Name:</td><td style="text-align:left;">{last_name}</td></tr>
+      <tr><td style="font-weight:bold;text-align:left; padding-right: 5px;">People:</td><td style="text-align:left;">{people}</td></tr>
+      <tr><td style="font-weight:bold;text-align:left; padding-right: 5px;">Date:</td><td style="text-align:left;">{date.strftime('%m-%d-%Y')}</td></tr>
+      <tr><td style="font-weight:bold;text-align:left; padding-right: 5px;">Time:</td><td style="text-align:left;">{time}</td></tr>
+      <tr><td style="font-weight:bold;text-align:left; padding-right: 5px;">Address:</td><td style="text-align:left;">{address}</td></tr>
+      <tr><td style="font-weight:bold;text-align:left; padding-right: 5px;">City:</td><td style="text-align:left;">{city}</td></tr>
+      <tr><td style="font-weight:bold;text-align:left; padding-right: 5px;">State:</td><td style="text-align:left;">{state}</td></tr>
+      <tr><td style="font-weight:bold;text-align:left; padding-right: 5px;">Zip:</td><td style="text-align:left;">{zip_code}</td></tr>
+      <tr><td style="font-weight:bold;text-align:left; padding-right: 5px;">Phone:</td><td style="text-align:left;">{phone}</td></tr>
+      <tr><td colspan="2" style="text-align:left;">Items Ordered:</td></tr>
+      <tr><td style="font-weight:bold;text-align:left; padding-right: 5px;">First Meat Choice:</td><td style="text-align:left;">{meat_choices.get(meat1, meat1)}</td></tr>
+      <tr><td style="font-weight:bold;text-align:left; padding-right: 5px;">Second Meat Choice:</td><td style="text-align:left;">{meat_choices.get(meat2, meat2)}</td></tr>
+      <tr><td colspan="2" style="text-align:left;">Additional Items:</td></tr>
+      {''.join(format_item(item) for item in formatted_items)}
+      <tr><td colspan="2" style="text-align:left;">Summary:</td></tr>
+      <tr><td style="font-weight:bold;text-align:left; padding-right: 5px;">Base Amount:</td><td style="text-align:left;">${int(base_amount) / 100:.2f}</td></tr>
+      <tr><td style="font-weight:bold;text-align:left; padding-right: 5px;">Sub-total:</td><td style="text-align:left;">${float(sub_total) / 100:.2f}</td></tr>
+      <tr><td style="font-weight:bold;text-align:left; padding-right: 5px;">Tax (7.75%):</td><td style="text-align:left;">${float(tax) / 100:.2f}</td></tr>
+      <tr><td style="font-weight:bold;text-align:left; padding-right: 5px;">Grand Total:</td><td style="text-align:left;">${float(grand_total) / 100:.2f}</td></tr>
+    </table>
+    </body>
+    </html>
+    """
 
     # Send email to the customer
     msg_to_customer = Message(
@@ -298,7 +336,7 @@ def success():
         sender="rbresnik@gmail.com",
         recipients=[customer_email],
     )
-    msg_to_customer.body = email_body
+    msg_to_customer.html = customer_email_body
     mail.send(msg_to_customer)
 
     # Send email to the restaurant
@@ -307,7 +345,7 @@ def success():
         sender="rbresnik@gmail.com",
         recipients=["rob@elpueblomex.com"],
     )
-    msg_to_restaurant.body = email_body
+    msg_to_restaurant.html = restaurant_email_body
     mail.send(msg_to_restaurant)
 
     return render_template("summary.html", **order_details)

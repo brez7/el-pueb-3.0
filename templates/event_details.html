@@ -3,14 +3,18 @@ endblock %} {% block content %}
 
 <div class="container" style="background: transparent;">
   <h1 class="text-danger">Event Details</h1>
+  <p>Start by inputting the number of people you want us to cater for:</p>
   <form action="{{ url_for('event_details') }}" method="post">
     <div class="form-group">
       <input type="number" class="form-control" id="people" name="people" placeholder="Number of People" required>
       <small id="peopleHelp" class="form-text text-muted"></small>
     </div>
+      <p>Select the date for your catering event. You will not be able to book catering within 48 hours of your desired event.</p>
     <div class="form-group">
       <input type="date" class="form-control" id="date" name="date" required>
     </div>
+          <p>Select the time for your catering event.</p>
+
     <div class="form-group">
       <select class="form-control" id="time" name="time" required>
         <option value="" disabled selected>Select Time</option>

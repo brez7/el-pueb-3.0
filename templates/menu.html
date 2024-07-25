@@ -7,7 +7,7 @@
   <h1 class="text-danger">Menu</h1>
   
   <!-- Display the total number of people and base amount -->
-  <p>Total number of people: {{ people }}</p>
+  <p>Total number of people: {{ people }} x $18.00 per person.</p>
   <p>Base amount for catering: ${{ "%.2f"|format(base_amount / 100) }}</p>
 
   <form action="{{ url_for('menu', people=request.args['people'], date=request.args['date'], time=request.args['time']) }}" method="post">

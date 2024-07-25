@@ -1,11 +1,55 @@
-{% extends "base.html" %} {% block title %}Home - El Pueblo Mexican Food{%
-endblock %} {% block content %}
+{% extends "base.html" %} 
+{% block title %}Home - El Pueblo Mexican Food{% endblock %} 
+{% block content %}
 
 <div class="container" style="background: transparent;">
- 
   <h1 class="text-danger">El Pueblo Mexican Food - Catering</h1>
   <p>Your favorite place for delicious Mexican cuisine.</p>
+
+    <a href="{{ url_for('event_details') }}" class="btn btn-primary">Plan Your Event</a> 
+
+  <h2 style="padding-top:20px;">Catering Summary</h2>
+  <p>Our catering is priced per person. You get to choose which types of meat you want. For $18 per person, you get:</p>
+  
+  <ul>
+    <li>Choice of two meats</li>
+    <p>The meat choices include Carne Asada, Pollo Asado (Chicken) and Adobada (Marinated Pork). You can combine them or select once choice. You also have the option to add an extra meat choice for an additional cost.</p>
+    <li>Guacamole</li>
+    <li>Pico de Gallo</li>
+    <li>Rice and Beans</li>
+    <li>Red Salsa (Mild)</li>
+    <li>Green Salsa (Medium)</li>
+    <li>Orange Salsa (Hot)</li>
+  </ul>
+  
+  <p>This is the basic catering package. You can also select the following items at an additional cost:</p>
+  
+  <ul>
+    <li>Third Meat Option</li>
+    <li>Quesadillas</li>
+    <li>Shrimp</li>
+    <li>Sour Cream</li>
+    <li>Bunuelos</li>
+  </ul>
+
+  <h3>Why Choose Us for Your Catering Needs?</h3>
+  <p>At El Pueblo Mexican Food, we pride ourselves on offering high-quality, delicious Mexican cuisine for any event. Our catering services are perfect for:</p>
+  
+  <ul>
+    <li>Weddings</li>
+    <li>Corporate Events</li>
+    <li>Birthday Parties</li>
+    <li>Family Gatherings</li>
+    <li>And any other special occasion!</li>
+  </ul>
+  
+  <h3>Our Commitment to Quality</h3>
+  <p>We use only the freshest ingredients to prepare our dishes, ensuring that your guests will enjoy a flavorful and authentic Mexican meal. Our team is dedicated to providing exceptional service and will work with you to create a customized menu that fits your needs and budget.</p>
+  
+  <h3>Get Started Today!</h3>
+  <p>Ready to plan your event? Click the button below to get started with our easy-to-use event planning tool. We look forward to making your event a delicious success!</p>
+
   <a href="{{ url_for('event_details') }}" class="btn btn-primary">Plan Your Event</a>
-  <!-- Add your homepage content here -->
 </div>
+
 {% endblock %}

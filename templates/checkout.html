@@ -18,6 +18,8 @@
         <li>{{ item.name }} (x{{ item.quantity }}) - ${{ "%.2f"|format(item.price / 100) if 'price' in item else 'No Charge' }}</li>
       {% endfor %}
     </ul>
+    <p><strong>Base Amount:</strong> $<span id="review-base-amount">{{ "%.2f"|format(base_amount / 100) }}</span></p>
+    <p><strong>Additional Items Total:</strong> $<span id="review-total-amount">{{ "%.2f"|format(total_amount / 100) }}</span></p>
     <p><strong>Sub-total:</strong> $<span id="review-sub-total">{{ "%.2f"|format(sub_total / 100) }}</span></p>
     <p><strong>Tax (7.75%):</strong> $<span id="review-tax">{{ "%.2f"|format(tax / 100) }}</span></p>
     <p><strong>Grand Total:</strong> $<span id="review-grand-total">{{ "%.2f"|format(grand_total / 100) }}</span></p>
