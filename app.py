@@ -3,6 +3,7 @@ import stripe
 from flask_mail import Mail, Message
 from datetime import datetime
 import json
+from flask_sqlalchemy import SQLAlchemy
 
 app = Flask(__name__)
 stripe.api_key = "sk_test_51HMJ15LkC2vPsGwFJOABaLMeVM3Wzvfa9TaHFtWbYwBw2G3mwwV76RN5rnAK3Z29uXwBxn9KyK8pzl1cYIGnxM1E00NlJJCFmT"
@@ -11,11 +12,20 @@ stripe.api_key = "sk_test_51HMJ15LkC2vPsGwFJOABaLMeVM3Wzvfa9TaHFtWbYwBw2G3mwwV76
 app.config["MAIL_SERVER"] = "smtp.gmail.com"
 app.config["MAIL_PORT"] = 587
 app.config["MAIL_USERNAME"] = "rbresnik@gmail.com"
-app.config["MAIL_PASSWORD"] = "dzybveqbvyjqbtch"  # Use the provided app-specific password
+app.config["MAIL_PASSWORD"] = (
+    "dzybveqbvyjqbtch"  # Use the provided app-specific password
+)
 app.config["MAIL_USE_TLS"] = True
 app.config["MAIL_USE_SSL"] = False
 
+# Configure SQLAlchemy
+app.config["SQLALCHEMY_DATABASE_URI"] = (
+    "sqlite:///catering.db"  # You can replace 'sqlite:///catering.db' with your desired database URI
+)
+app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
+
 mail = Mail(app)
+db = SQLAlchemy(app)
 
 meat_choices = {
     "carne_asada": "Carne Asada",
@@ -24,6 +34,7 @@ meat_choices = {
     # Add more mappings if needed
 }
 
+
 # Custom filter to format datetime
 @app.template_filter("strftime")
 def format_datetime(value, format="%m-%d-%Y"):
@@ -31,9 +42,42 @@ def format_datetime(value, format="%m-%d-%Y"):
         return ""
     return value.strftime(format)
 
+
+class Order(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    people = db.Column(db.Integer, nullable=False)
+    date = db.Column(db.Date, nullable=False)
+    time = db.Column(db.String(50), nullable=False)
+    total_amount = db.Column(db.Integer, nullable=False)
+    base_amount = db.Column(db.Integer, nullable=False)
+    sub_total = db.Column(db.Integer, nullable=False)
+    tax = db.Column(db.Integer, nullable=False)
+    grand_total = db.Column(db.Integer, nullable=False)
+    meat1 = db.Column(db.String(50), nullable=False)
+    meat2 = db.Column(db.String(50), nullable=False)
+    customer_email = db.Column(db.String(100), nullable=False)
+    first_name = db.Column(db.String(50), nullable=False)
+    last_name = db.Column(db.String(50), nullable=False)
+    address = db.Column(db.String(200), nullable=False)
+    city = db.Column(db.String(50), nullable=False)
+    state = db.Column(db.String(50), nullable=False)
+    zip_code = db.Column(db.String(20), nullable=False)
+    phone = db.Column(db.String(20), nullable=False)
+    items = db.relationship("Item", backref="order", lazy=True)
+
+
+class Item(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100), nullable=False)
+    price = db.Column(db.Integer, nullable=False)
+    quantity = db.Column(db.Integer, nullable=False)
+    order_id = db.Column(db.Integer, db.ForeignKey("order.id"), nullable=False)
+
+
 @app.route("/")
 def home():
     return render_template("index.html")
+
 
 ################################################  EVENT - DETAILS ######################################################
 @app.route("/event-details", methods=["GET", "POST"])
@@ -44,6 +88,7 @@ def event_details():
         time = request.form["time"]
         return redirect(url_for("menu", people=people, date=date, time=time))
     return render_template("event_details.html")
+
 
 ################################################  MENU ######################################################
 @app.route("/menu", methods=["GET", "POST"])
@@ -237,6 +282,42 @@ def success():
         if item["name"] not in {meat_choices.get(meat1), meat_choices.get(meat2)}
     ]
 
+    # Save order to the database
+    order = Order(
+        people=people,
+        date=date,
+        time=time,
+        total_amount=total_amount,
+        base_amount=base_amount,
+        sub_total=sub_total,
+        tax=tax,
+        grand_total=grand_total,
+        meat1=meat1,
+        meat2=meat2,
+        customer_email=customer_email,
+        first_name=first_name,
+        last_name=last_name,
+        address=address,
+        city=city,
+        state=state,
+        zip_code=zip_code,
+        phone=phone,
+    )
+    db.session.add(order)
+    db.session.commit()
+
+    # Save items to the database
+    for item in formatted_items:
+        order_item = Item(
+            name=item["name"],
+            price=item["price"],
+            quantity=item["quantity"],
+            order_id=order.id,
+        )
+        db.session.add(order_item)
+
+    db.session.commit()
+
     order_details = {
         "people": people,
         "date": date,
@@ -280,18 +361,18 @@ def success():
       <tr><td style="font-weight:bold;text-align:left; padding-right: 5px;">Address:</td><td style="text-align:left;">{address}</td></tr>
       <tr><td style="font-weight:bold;text-align:left; padding-right: 5px;">City:</td><td style="text-align:left;">{city}</td></tr>
       <tr><td style="font-weight:bold;text-align:left; padding-right: 5px;">State:</td><td style="text-align:left;">{state}</td></tr>
-      <tr><td style="font-weight:bold;text-align:left; padding-right: 5px;">Zip:</td><td style="text-align:left;">{zip_code}</td></tr>
+      <tr><td style="font-weight:bold;text-align:left; padding-right: 5 px;">Zip:</td><td style="text-align:left;">{zip_code}</td></tr>
       <tr><td style="font-weight:bold;text-align:left; padding-right: 5px;">Phone:</td><td style="text-align:left;">{phone}</td></tr>
       <tr><td colspan="2" style="text-align:left;">Items Ordered:</td></tr>
-      <tr><td style="font-weight:bold;text-align:left; padding-right: 5px;">First Meat Choice:</td><td style="text-align:left;">{meat_choices.get(meat1, meat1)}</td></tr>
-      <tr><td style="font-weight:bold;text-align:left; padding-right: 5px;">Second Meat Choice:</td><td style="text-align:left;">{meat_choices.get(meat2, meat2)}</td></tr>
+      <tr><td style="font-weight:bold;text-align:left; padding-right: 5 px;">First Meat Choice:</td><td style="text-align:left;">{meat_choices.get(meat1, meat1)}</td></tr>
+      <tr><td style="font-weight:bold;text-align:left; padding-right: 5 px;">Second Meat Choice:</td><td style="text-align:left;">{meat_choices.get(meat2, meat2)}</td></tr>
       <tr><td colspan="2" style="text-align:left;">Additional Items:</td></tr>
       {''.join(format_item(item) for item in formatted_items)}
       <tr><td colspan="2" style="text-align:left;">Summary:</td></tr>
-      <tr><td style="font-weight:bold;text-align:left; padding-right: 5px;">Base Amount:</td><td style="text-align:left;">${int(base_amount) / 100:.2f}</td></tr>
-      <tr><td style="font-weight:bold;text-align:left; padding-right: 5px;">Sub-total:</td><td style="text-align:left;">${float(sub_total) / 100:.2f}</td></tr>
-      <tr><td style="font-weight:bold;text-align:left; padding-right: 5px;">Tax (7.75%):</td><td style="text-align:left;">${float(tax) / 100:.2f}</td></tr>
-      <tr><td style="font-weight:bold;text-align:left; padding-right: 5px;">Grand Total:</td><td style="text-align:left;">${float(grand_total) / 100:.2f}</td></tr>
+      <tr><td style="font-weight:bold;text-align:left; padding-right: 5 px;">Base Amount:</td><td style="text-align:left;">${int(base_amount) / 100:.2f}</td></tr>
+      <tr><td style="font-weight:bold;text-align:left; padding-right: 5 px;">Sub-total:</td><td style="text-align:left;">${float(sub_total) / 100:.2f}</td></tr>
+      <tr><td style="font-weight:bold;text-align:left; padding-right: 5 px;">Tax (7.75%):</td><td style="text-align:left;">${float(tax) / 100:.2f}</td></tr>
+      <tr><td style="font-weight:bold;text-align:left; padding-right: 5 px;">Grand Total:</td><td style="text-align:left;">${float(grand_total) / 100:.2f}</td></tr>
     </table>
     <p>Thank you for choosing El Pueblo Mexican Food for your catering needs!</p>
     </body>
@@ -306,25 +387,25 @@ def success():
       <tr><th colspan="2" style="text-align:left;">ORDER RECEIPT</th></tr>
       <tr><td colspan="2" style="text-align:left;">Order Details:</td></tr>
       <tr><td style="font-weight:bold;text-align:left; padding-right: 5px;">First Name:</td><td style="text-align:left;">{first_name}</td></tr>
-      <tr><td style="font-weight:bold;text-align:left; padding-right: 5px;">Last Name:</td><td style="text-align:left;">{last_name}</td></tr>
-      <tr><td style="font-weight:bold;text-align:left; padding-right: 5px;">People:</td><td style="text-align:left;">{people}</td></tr>
-      <tr><td style="font-weight:bold;text-align:left; padding-right: 5px;">Date:</td><td style="text-align:left;">{date.strftime('%m-%d-%Y')}</td></tr>
-      <tr><td style="font-weight:bold;text-align:left; padding-right: 5px;">Time:</td><td style="text-align:left;">{time}</td></tr>
-      <tr><td style="font-weight:bold;text-align:left; padding-right: 5px;">Address:</td><td style="text-align:left;">{address}</td></tr>
-      <tr><td style="font-weight:bold;text-align:left; padding-right: 5px;">City:</td><td style="text-align:left;">{city}</td></tr>
-      <tr><td style="font-weight:bold;text-align:left; padding-right: 5px;">State:</td><td style="text-align:left;">{state}</td></tr>
-      <tr><td style="font-weight:bold;text-align:left; padding-right: 5px;">Zip:</td><td style="text-align:left;">{zip_code}</td></tr>
-      <tr><td style="font-weight:bold;text-align:left; padding-right: 5px;">Phone:</td><td style="text-align:left;">{phone}</td></tr>
-      <tr><td colspan="2" style="text-align:left;">Items Ordered:</td></tr>
-      <tr><td style="font-weight:bold;text-align:left; padding-right: 5px;">First Meat Choice:</td><td style="text-align:left;">{meat_choices.get(meat1, meat1)}</td></tr>
-      <tr><td style="font-weight:bold;text-align:left; padding-right: 5px;">Second Meat Choice:</td><td style="text-align:left;">{meat_choices.get(meat2, meat2)}</td></tr>
+      <tr><td style="font-weight:bold;text.align:left; padding-right: 5 px;">Last Name:</td><td style="text-align:left;">{last_name}</td></tr>
+      <tr><td style="font-weight:bold;text-align:left; padding-right: 5 px;">People:</td><td style="text.align:left;">{people}</td></tr>
+      <tr><td style="font-weight:bold;text-align:left; padding-right: 5 px;">Date:</td><td style="text-align:left;">{date.strftime('%m-%d-%Y')}</td></tr>
+      <tr><td style="font-weight:bold;text-align:left; padding-right: 5 px;">Time:</td><td style="text-align:left;">{time}</td></tr>
+      <tr><td style="font-weight:bold;text.align:left; padding-right: 5 px;">Address:</td><td style="text.align:left;">{address}</td></tr>
+      <tr><td style="font-weight:bold;text.align:left; padding-right: 5 px;">City:</td><td style="text-align:left;">{city}</td></tr>
+      <tr><td style="font-weight:bold;text-align:left; padding-right: 5 px;">State:</td><td style="text-align:left;">{state}</td></tr>
+      <tr><td style="font-weight:bold;text-align:left; padding-right: 5 px;">Zip:</td><td style="text-align:left;">{zip_code}</td></tr>
+      <tr><td style="font-weight:bold;text-align:left; padding-right: 5 px;">Phone:</td><td style="text.align:left;">{phone}</td></tr>
+      <tr><td colspan="2" style="text.align:left;">Items Ordered:</td></tr>
+      <tr><td style="font-weight:bold;text.align:left; padding-right: 5 px;">First Meat Choice:</td><td style="text.align:left;">{meat_choices.get(meat1, meat1)}</td></tr>
+      <tr><td style="font-weight:bold;text.align:left; padding-right: 5 px;">Second Meat Choice:</td><td style="text-align:left;">{meat_choices.get(meat2, meat2)}</td></tr>
       <tr><td colspan="2" style="text-align:left;">Additional Items:</td></tr>
       {''.join(format_item(item) for item in formatted_items)}
-      <tr><td colspan="2" style="text-align:left;">Summary:</td></tr>
-      <tr><td style="font-weight:bold;text-align:left; padding-right: 5px;">Base Amount:</td><td style="text-align:left;">${int(base_amount) / 100:.2f}</td></tr>
-      <tr><td style="font-weight:bold;text-align:left; padding-right: 5px;">Sub-total:</td><td style="text-align:left;">${float(sub_total) / 100:.2f}</td></tr>
-      <tr><td style="font-weight:bold;text-align:left; padding-right: 5px;">Tax (7.75%):</td><td style="text-align:left;">${float(tax) / 100:.2f}</td></tr>
-      <tr><td style="font-weight:bold;text-align:left; padding-right: 5px;">Grand Total:</td><td style="text-align:left;">${float(grand_total) / 100:.2f}</td></tr>
+      <tr><td colspan="2" style="text.align:left;">Summary:</td></tr>
+      <tr><td style="font-weight:bold;text.align:left; padding-right: 5 px;">Base Amount:</td><td style="text-align:left;">${int(base_amount) / 100:.2f}</td></tr>
+      <tr><td style="font-weight:bold;text-align:left; padding-right: 5 px;">Sub-total:</td><td style="text-align:left;">${float(sub_total) / 100:.2f}</td></tr>
+      <tr><td style="font-weight:bold;text-align:left; padding-right: 5 px;">Tax (7.75%):</td><td style="text.align:left;">${float(tax) / 100:.2f}</td></tr>
+      <tr><td style="font-weight:bold;text-align:left; padding-right: 5 px;">Grand Total:</td><td style="text.align:left;">${float(grand_total) / 100:.2f}</td></tr>
     </table>
     </body>
     </html>
@@ -353,4 +434,6 @@ def success():
 
 ################################################ END ######################################################
 if __name__ == "__main__":
+    with app.app_context():
+        db.create_all()
     app.run(debug=True)
