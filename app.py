@@ -432,6 +432,12 @@ def success():
     return render_template("summary.html", **order_details)
 
 
+@app.route("/orders")
+def orders():
+    all_orders = Order.query.all()
+    return render_template("orders.html", orders=all_orders, meat_choices=meat_choices)
+
+
 ################################################ END ######################################################
 if __name__ == "__main__":
     with app.app_context():
