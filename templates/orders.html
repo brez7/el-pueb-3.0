@@ -3,55 +3,36 @@
 {% block title %}Orders - El Pueblo Mexican Food{% endblock %}
 
 {% block content %}
-<div class="container-fluid p-0" style="background: transparent;">
+<div class="container-fluid p-3" style="background: transparent;">
     <h1 class="text-danger text-center py-3">All Orders</h1>
-    <div class="table-responsive">
-        <table class="table table-bordered table-striped table-dark w-100">
-            <thead class="thead-dark">
-                <tr>
-                    <th scope="col">Order ID</th>
-                    <th scope="col">Customer Name</th>
-                    <th scope="col">Email</th>
-                    <th scope="col">Phone</th>
-                    <th scope="col">Date</th>
-                    <th scope="col">Time</th>
-                    <th scope="col">People</th>
-                    <th scope="col">Address</th>
-                    <th scope="col">City</th>
-                    <th scope="col">State</th>
-                    <th scope="col">Zip</th>
-                    <th scope="col">Meat Choices</th>
-                    <th scope="col">Items</th>
-                    <th scope="col">Total Amount</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for order in orders %}
-                <tr>
-                    <th scope="row">{{ order.id }}</th>
-                    <td>{{ order.first_name }} {{ order.last_name }}</td>
-                    <td>{{ order.customer_email }}</td>
-                    <td>{{ order.phone }}</td>
-                    <td>{{ order.date.strftime('%m-%d-%Y') }}</td>
-                    <td>{{ order.time }}</td>
-                    <td>{{ order.people }}</td>
-                    <td>{{ order.address }}</td>
-                    <td>{{ order.city }}</td>
-                    <td>{{ order.state }}</td>
-                    <td>{{ order.zip_code }}</td>
-                    <td>{{ meat_choices[order.meat1] }}, {{ meat_choices[order.meat2] }}</td>
-                    <td>
-                        <ul>
-                        {% for item in order.items %}
+    <div class="row">
+        {% for order in orders %}
+        <div class="col-md-6 col-lg-4">
+            <div class="card mb-4 text-black">
+                <div class="card-header" style="background-color: #ff0000; color: white;">
+                    Order ID: {{ order.id }}
+                </div>
+                <div class="card-body">
+                    <h5 class="card-title">{{ order.first_name }} {{ order.last_name }}</h5>
+                    <p class="card-text"><strong>Email:</strong> {{ order.customer_email }}</p>
+                    <p class="card-text"><strong>Phone:</strong> {{ order.phone }}</p>
+                    <p class="card-text"><strong>Date:</strong> {{ order.date.strftime('%m-%d-%Y') }}</p>
+                    <p class="card-text"><strong>Time:</strong> {{ order.time }}</p>
+                    <p class="card-text"><strong>People:</strong> {{ order.people }}</p>
+                    <p class="card-text"><strong>Address:</strong> {{ order.address }}, {{ order.city }}, {{ order.state }} {{ order.zip_code }}</p>
+                    <p class="card-text"><strong>Meat Choices:</strong> {{ meat_choices[order.meat1] }}, {{ meat_choices[order.meat2] }}</p>
+                    <p class="card-text"><strong>Items:</strong>
+                        <ul class="list-unstyled">
+                            {% for item in order.items %}
                             <li>{{ item.name }} (x{{ item.quantity }}) - ${{ "%.2f"|format(item.price / 100) }}</li>
-                        {% endfor %}
+                            {% endfor %}
                         </ul>
-                    </td>
-                    <td>${{ "%.2f"|format(order.grand_total / 100) }}</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+                    </p>
+                    <p class="card-text"><strong>Total Amount:</strong> ${{ "%.2f"|format(order.grand_total / 100) }}</p>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
     </div>
 </div>
 {% endblock %}
