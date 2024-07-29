@@ -1,0 +1,9 @@
+Flask==2.0.1
+Flask-Mail==0.9.1
+Flask-SQLAlchemy==2.5.1
+SQLAlchemy==1.4.22
+stripe==2.56.0
+gunicorn==20.1.0
+Flask-Migrate
+google-cloud-firestore==2.1.0
+werkzeug==2.0.1

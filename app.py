@@ -1,9 +1,11 @@
+import os
 from flask import Flask, render_template, request, redirect, url_for, jsonify
 import stripe
 from flask_mail import Mail, Message
 from datetime import datetime
 import json
 from flask_sqlalchemy import SQLAlchemy
+from flask_migrate import Migrate
 
 app = Flask(__name__)
 stripe.api_key = "sk_test_51HMJ15LkC2vPsGwFJOABaLMeVM3Wzvfa9TaHFtWbYwBw2G3mwwV76RN5rnAK3Z29uXwBxn9KyK8pzl1cYIGnxM1E00NlJJCFmT"
@@ -19,13 +21,18 @@ app.config["MAIL_USE_TLS"] = True
 app.config["MAIL_USE_SSL"] = False
 
 # Configure SQLAlchemy
-app.config["SQLALCHEMY_DATABASE_URI"] = (
-    "sqlite:///catering.db"  # You can replace 'sqlite:///catering.db' with your desired database URI
+import os
+
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///" + os.path.join(
+    BASE_DIR, "catering.db"
 )
+
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
 mail = Mail(app)
 db = SQLAlchemy(app)
+migrate = Migrate(app, db)
 
 meat_choices = {
     "carne_asada": "Carne Asada",
@@ -41,6 +48,12 @@ def format_datetime(value, format="%m-%d-%Y"):
     if value is None:
         return ""
     return value.strftime(format)
+
+
+# Ensure tables are created before the first request
+@app.before_first_request
+def create_tables():
+    db.create_all()
 
 
 class Order(db.Model):
@@ -79,7 +92,6 @@ def home():
     return render_template("index.html")
 
 
-################################################  EVENT - DETAILS ######################################################
 @app.route("/event-details", methods=["GET", "POST"])
 def event_details():
     if request.method == "POST":
@@ -90,7 +102,6 @@ def event_details():
     return render_template("event_details.html")
 
 
-################################################  MENU ######################################################
 @app.route("/menu", methods=["GET", "POST"])
 def menu():
     if request.method == "POST":
@@ -158,7 +169,6 @@ def menu():
     return render_template("menu.html", people=people, base_amount=base_amount)
 
 
-################################################  CHECKOUT ######################################################
 @app.route("/checkout", methods=["GET", "POST"])
 def checkout():
     if request.method == "POST":
@@ -256,192 +266,195 @@ def checkout():
     )
 
 
-################################################  SUCCESS ######################################################
 @app.route("/success")
 def success():
-    people = request.args.get("people")
-    date = request.args.get("date")
-    date = datetime.strptime(date, "%Y-%m-%d")
-    time = request.args.get("time")
-    items = request.args.get("items")
-    if items is not None:
-        items = json.loads(items)
-    else:
-        items = []
-    total_amount = request.args.get("total_amount")
-    base_amount = request.args.get("base_amount")
-    sub_total = request.args.get("sub_total")
-    tax = request.args.get("tax")
-    grand_total = request.args.get("grand_total")
-    meat1 = request.args.get("meat1")
-    meat2 = request.args.get("meat2")
-    customer_email = request.args.get("email")
-    first_name = request.args.get("first_name")
-    last_name = request.args.get("last_name")
-    address = request.args.get("address")
-    city = request.args.get("city")
-    state = request.args.get("state")
-    zip_code = request.args.get("zip")
-    phone = request.args.get("phone")
+    try:
+        people = request.args.get("people")
+        date = request.args.get("date")
+        date = datetime.strptime(date, "%Y-%m-%d")
+        time = request.args.get("time")
+        items = request.args.get("items")
+        if items is not None:
+            items = json.loads(items)
+        else:
+            items = []
+        total_amount = request.args.get("total_amount")
+        base_amount = request.args.get("base_amount")
+        sub_total = request.args.get("sub_total")
+        tax = request.args.get("tax")
+        grand_total = request.args.get("grand_total")
+        meat1 = request.args.get("meat1")
+        meat2 = request.args.get("meat2")
+        customer_email = request.args.get("email")
+        first_name = request.args.get("first_name")
+        last_name = request.args.get("last_name")
+        address = request.args.get("address")
+        city = request.args.get("city")
+        state = request.args.get("state")
+        zip_code = request.args.get("zip")
+        phone = request.args.get("phone")
 
-    formatted_items = [
-        {
-            "name": meat_choices.get(item["name"], item["name"]),
-            "price": item["price"],
-            "quantity": item["quantity"],
-        }
-        for item in items
-        if item["name"] not in {meat_choices.get(meat1), meat_choices.get(meat2)}
-    ]
+        formatted_items = [
+            {
+                "name": meat_choices.get(item["name"], item["name"]),
+                "price": item["price"],
+                "quantity": item["quantity"],
+            }
+            for item in items
+            if item["name"] not in {meat_choices.get(meat1), meat_choices.get(meat2)}
+        ]
 
-    # Save order to the database
-    order = Order(
-        people=people,
-        date=date,
-        time=time,
-        total_amount=total_amount,
-        base_amount=base_amount,
-        sub_total=sub_total,
-        tax=tax,
-        grand_total=grand_total,
-        meat1=meat1,
-        meat2=meat2,
-        customer_email=customer_email,
-        first_name=first_name,
-        last_name=last_name,
-        address=address,
-        city=city,
-        state=state,
-        zip_code=zip_code,
-        phone=phone,
-    )
-    db.session.add(order)
-    db.session.commit()
-
-    # Save items to the database
-    for item in formatted_items:
-        order_item = Item(
-            name=item["name"],
-            price=item["price"],
-            quantity=item["quantity"],
-            order_id=order.id,
+        # Save order to the database
+        order = Order(
+            people=people,
+            date=date,
+            time=time,
+            total_amount=total_amount,
+            base_amount=base_amount,
+            sub_total=sub_total,
+            tax=tax,
+            grand_total=grand_total,
+            meat1=meat1,
+            meat2=meat2,
+            customer_email=customer_email,
+            first_name=first_name,
+            last_name=last_name,
+            address=address,
+            city=city,
+            state=state,
+            zip_code=zip_code,
+            phone=phone,
         )
-        db.session.add(order_item)
+        db.session.add(order)
+        db.session.commit()
 
-    db.session.commit()
+        # Save items to the database
+        for item in formatted_items:
+            order_item = Item(
+                name=item["name"],
+                price=item["price"],
+                quantity=item["quantity"],
+                order_id=order.id,
+            )
+            db.session.add(order_item)
 
-    order_details = {
-        "people": people,
-        "date": date,
-        "time": time,
-        "items": formatted_items,
-        "total_amount": total_amount,
-        "base_amount": base_amount,
-        "sub_total": sub_total,
-        "tax": tax,
-        "grand_total": grand_total,
-        "meat1": meat_choices.get(meat1, meat1),
-        "meat2": meat_choices.get(meat2, meat2),
-        "customer_email": customer_email,
-        "first_name": first_name,
-        "last_name": last_name,
-        "address": address,
-        "city": city,
-        "state": state,
-        "zip": zip_code,
-        "phone": phone,
-        "meat_choices": meat_choices,
-    }
+        db.session.commit()
 
-    def format_item(item):
-        price = f"${item['price'] / 100:.2f}" if item["price"] > 0 else ""
-        return f"<tr><td style='font-weight:bold; padding-right: 5px;'>{item['name']}</td><td>{price}</td></tr>"
+        order_details = {
+            "people": people,
+            "date": date,
+            "time": time,
+            "items": formatted_items,
+            "total_amount": total_amount,
+            "base_amount": base_amount,
+            "sub_total": sub_total,
+            "tax": tax,
+            "grand_total": grand_total,
+            "meat1": meat_choices.get(meat1, meat1),
+            "meat2": meat_choices.get(meat2, meat2),
+            "customer_email": customer_email,
+            "first_name": first_name,
+            "last_name": last_name,
+            "address": address,
+            "city": city,
+            "state": state,
+            "zip": zip_code,
+            "phone": phone,
+            "meat_choices": meat_choices,
+        }
 
-    customer_email_body = f"""
-    <html>
-    <body>
-    <h1>El Pueblo Mexican Food Catering Order</h1>
-    <h2>Thank you for your order!</h2>
-    <table style="width:50%; border-collapse:collapse;">
-      <tr><th colspan="2" style="text-align:left;">ORDER RECEIPT</th></tr>
-      <tr><td colspan="2" style="text-align:left;">Order Details:</td></tr>
-      <tr><td style="font-weight:bold;text-align:left; padding-right: 5px;">First Name:</td><td style="text-align:left;">{first_name}</td></tr>
-      <tr><td style="font-weight:bold;text-align:left; padding-right: 5px;">Last Name:</td><td style="text-align:left;">{last_name}</td></tr>
-      <tr><td style="font-weight:bold;text-align:left; padding-right: 5px;">People:</td><td style="text-align:left;">{people}</td></tr>
-      <tr><td style="font-weight:bold;text-align:left; padding-right: 5px;">Date:</td><td style="text-align:left;">{date.strftime('%m-%d-%Y')}</td></tr>
-      <tr><td style="font-weight:bold;text-align:left; padding-right: 5px;">Time:</td><td style="text-align:left;">{time}</td></tr>
-      <tr><td style="font-weight:bold;text-align:left; padding-right: 5px;">Address:</td><td style="text-align:left;">{address}</td></tr>
-      <tr><td style="font-weight:bold;text-align:left; padding-right: 5px;">City:</td><td style="text-align:left;">{city}</td></tr>
-      <tr><td style="font-weight:bold;text-align:left; padding-right: 5px;">State:</td><td style="text-align:left;">{state}</td></tr>
-      <tr><td style="font-weight:bold;text-align:left; padding-right: 5 px;">Zip:</td><td style="text-align:left;">{zip_code}</td></tr>
-      <tr><td style="font-weight:bold;text-align:left; padding-right: 5px;">Phone:</td><td style="text-align:left;">{phone}</td></tr>
-      <tr><td colspan="2" style="text-align:left;">Items Ordered:</td></tr>
-      <tr><td style="font-weight:bold;text-align:left; padding-right: 5 px;">First Meat Choice:</td><td style="text-align:left;">{meat_choices.get(meat1, meat1)}</td></tr>
-      <tr><td style="font-weight:bold;text-align:left; padding-right: 5 px;">Second Meat Choice:</td><td style="text-align:left;">{meat_choices.get(meat2, meat2)}</td></tr>
-      <tr><td colspan="2" style="text-align:left;">Additional Items:</td></tr>
-      {''.join(format_item(item) for item in formatted_items)}
-      <tr><td colspan="2" style="text-align:left;">Summary:</td></tr>
-      <tr><td style="font-weight:bold;text-align:left; padding-right: 5 px;">Base Amount:</td><td style="text-align:left;">${int(base_amount) / 100:.2f}</td></tr>
-      <tr><td style="font-weight:bold;text-align:left; padding-right: 5 px;">Sub-total:</td><td style="text-align:left;">${float(sub_total) / 100:.2f}</td></tr>
-      <tr><td style="font-weight:bold;text-align:left; padding-right: 5 px;">Tax (7.75%):</td><td style="text-align:left;">${float(tax) / 100:.2f}</td></tr>
-      <tr><td style="font-weight:bold;text-align:left; padding-right: 5 px;">Grand Total:</td><td style="text-align:left;">${float(grand_total) / 100:.2f}</td></tr>
-    </table>
-    <p>Thank you for choosing El Pueblo Mexican Food for your catering needs!</p>
-    </body>
-    </html>
-    """
+        def format_item(item):
+            price = f"${item['price'] / 100:.2f}" if item["price"] > 0 else ""
+            return f"<tr><td style='font-weight:bold; padding-right: 5px;'>{item['name']}</td><td>{price}</td></tr>"
 
-    restaurant_email_body = f"""
-    <html>
-    <body>
-    <h2>Order Details for {first_name} {last_name} </h2>
-    <table style="width:50%; border-collapse:collapse;">
-      <tr><th colspan="2" style="text-align:left;">ORDER RECEIPT</th></tr>
-      <tr><td colspan="2" style="text-align:left;">Order Details:</td></tr>
-      <tr><td style="font-weight:bold;text-align:left; padding-right: 5px;">First Name:</td><td style="text-align:left;">{first_name}</td></tr>
-      <tr><td style="font-weight:bold;text.align:left; padding-right: 5 px;">Last Name:</td><td style="text-align:left;">{last_name}</td></tr>
-      <tr><td style="font-weight:bold;text-align:left; padding-right: 5 px;">People:</td><td style="text.align:left;">{people}</td></tr>
-      <tr><td style="font-weight:bold;text-align:left; padding-right: 5 px;">Date:</td><td style="text-align:left;">{date.strftime('%m-%d-%Y')}</td></tr>
-      <tr><td style="font-weight:bold;text-align:left; padding-right: 5 px;">Time:</td><td style="text-align:left;">{time}</td></tr>
-      <tr><td style="font-weight:bold;text.align:left; padding-right: 5 px;">Address:</td><td style="text.align:left;">{address}</td></tr>
-      <tr><td style="font-weight:bold;text.align:left; padding-right: 5 px;">City:</td><td style="text-align:left;">{city}</td></tr>
-      <tr><td style="font-weight:bold;text-align:left; padding-right: 5 px;">State:</td><td style="text-align:left;">{state}</td></tr>
-      <tr><td style="font-weight:bold;text-align:left; padding-right: 5 px;">Zip:</td><td style="text-align:left;">{zip_code}</td></tr>
-      <tr><td style="font-weight:bold;text-align:left; padding-right: 5 px;">Phone:</td><td style="text.align:left;">{phone}</td></tr>
-      <tr><td colspan="2" style="text.align:left;">Items Ordered:</td></tr>
-      <tr><td style="font-weight:bold;text.align:left; padding-right: 5 px;">First Meat Choice:</td><td style="text.align:left;">{meat_choices.get(meat1, meat1)}</td></tr>
-      <tr><td style="font-weight:bold;text.align:left; padding-right: 5 px;">Second Meat Choice:</td><td style="text-align:left;">{meat_choices.get(meat2, meat2)}</td></tr>
-      <tr><td colspan="2" style="text-align:left;">Additional Items:</td></tr>
-      {''.join(format_item(item) for item in formatted_items)}
-      <tr><td colspan="2" style="text.align:left;">Summary:</td></tr>
-      <tr><td style="font-weight:bold;text.align:left; padding-right: 5 px;">Base Amount:</td><td style="text-align:left;">${int(base_amount) / 100:.2f}</td></tr>
-      <tr><td style="font-weight:bold;text-align:left; padding-right: 5 px;">Sub-total:</td><td style="text-align:left;">${float(sub_total) / 100:.2f}</td></tr>
-      <tr><td style="font-weight:bold;text-align:left; padding-right: 5 px;">Tax (7.75%):</td><td style="text.align:left;">${float(tax) / 100:.2f}</td></tr>
-      <tr><td style="font-weight:bold;text-align:left; padding-right: 5 px;">Grand Total:</td><td style="text.align:left;">${float(grand_total) / 100:.2f}</td></tr>
-    </table>
-    </body>
-    </html>
-    """
+        customer_email_body = f"""
+        <html>
+        <body>
+        <h1>El Pueblo Mexican Food Catering Order</h1>
+        <h2>Thank you for your order!</h2>
+        <table style="width:50%; border-collapse:collapse;">
+          <tr><th colspan="2" style="text-align:left;">ORDER RECEIPT</th></tr>
+          <tr><td colspan="2" style="text-align:left;">Order Details:</td></tr>
+          <tr><td style="font-weight:bold;text-align:left; padding-right: 5px;">First Name:</td><td style="text-align:left;">{first_name}</td></tr>
+          <tr><td style="font-weight:bold;text-align:left; padding-right: 5px;">Last Name:</td><td style="text-align:left;">{last_name}</td></tr>
+          <tr><td style="font-weight:bold;text-align:left; padding-right: 5px;">People:</td><td style="text-align:left;">{people}</td></tr>
+          <tr><td style="font-weight:bold;text-align:left; padding-right: 5 px;">Date:</td><td style="text-align:left;">{date.strftime('%m-%d-%Y')}</td></tr>
+          <tr><td style="font-weight:bold;text-align:left; padding-right: 5px;">Time:</td><td style="text-align:left;">{time}</td></tr>
+          <tr><td style="font-weight:bold;text-align:left; padding-right: 5px;">Address:</td><td style="text-align:left;">{address}</td></tr>
+          <tr><td style="font-weight:bold;text-align:left; padding-right: 5px;">City:</td><td style="text-align:left;">{city}</td></tr>
+          <tr><td style="font-weight:bold;text-align:left; padding-right: 5px;">State:</td><td style="text-align:left;">{state}</td></tr>
+          <tr><td style="font-weight:bold;text-align:left; padding-right: 5px;">Zip:</td><td style="text-align:left;">{zip_code}</td></tr>
+          <tr><td style="font-weight:bold;text-align:left; padding-right: 5px;">Phone:</td><td style="text-align:left;">{phone}</td></tr>
+          <tr><td colspan="2" style="text-align:left;">Items Ordered:</td></tr>
+          <tr><td style="font-weight:bold;text-align:left; padding-right: 5px;">First Meat Choice:</td><td style="text-align:left;">{meat_choices.get(meat1, meat1)}</td></tr>
+          <tr><td style="font-weight:bold;text-align:left; padding-right: 5px;">Second Meat Choice:</td><td style="text-align:left;">{meat_choices.get(meat2, meat2)}</td></tr>
+          <tr><td colspan="2" style="text-align:left;">Additional Items:</td></tr>
+          {''.join(format_item(item) for item in formatted_items)}
+          <tr><td colspan="2" style="text-align:left;">Summary:</td></tr>
+          <tr><td style="font-weight:bold;text-align:left; padding-right: 5 px;">Base Amount:</td><td style="text-align:left;">${int(base_amount) / 100:.2f}</td></tr>
+          <tr><td style="font-weight:bold;text-align:left; padding-right: 5px;">Sub-total:</td><td style="text-align:left;">${float(sub_total) / 100:.2f}</td></tr>
+          <tr><td style="font-weight:bold;text-align:left; padding-right: 5px;">Tax (7.75%):</td><td style="text-align:left;">${float(tax) / 100:.2f}</td></tr>
+          <tr><td style="font-weight:bold;text-align:left; padding-right: 5px;">Grand Total:</td><td style="text-align:left;">${float(grand_total) / 100:.2f}</td></tr>
+        </table>
+        <p>Thank you for choosing El Pueblo Mexican Food for your catering needs!</p>
+        </body>
+        </html>
+        """
 
-    # Send email to the customer
-    msg_to_customer = Message(
-        "Your Catering Order Confirmation",
-        sender="rbresnik@gmail.com",
-        recipients=[customer_email],
-    )
-    msg_to_customer.html = customer_email_body
-    mail.send(msg_to_customer)
+        restaurant_email_body = f"""
+        <html>
+        <body>
+        <h2>Order Details for {first_name} {last_name} </h2>
+        <table style="width:50%; border-collapse:collapse;">
+          <tr><th colspan="2" style="text-align:left;">ORDER RECEIPT</th></tr>
+          <tr><td colspan="2" style="text-align:left;">Order Details:</td></tr>
+          <tr><td style="font-weight:bold;text-align:left; padding-right: 5px;">First Name:</td><td style="text-align:left;">{first_name}</td></tr>
+          <tr><td style="font-weight:bold;text.align:left; padding-right: 5px;">Last Name:</td><td style="text-align:left;">{last_name}</td></tr>
+          <tr><td style="font-weight:bold;text-align:left; padding-right: 5px;">People:</td><td style="text-align:left;">{people}</td></tr>
+          <tr><td style="font-weight:bold;text.align:left; padding-right: 5 px;">Date:</td><td style="text-align:left;">{date.strftime('%m-%d-%Y')}</td></tr>
+          <tr><td style="font-weight:bold;text-align:left; padding-right: 5 px;">Time:</td><td style="text-align:left;">{time}</td></tr>
+          <tr><td style="font-weight:bold;text-align:left; padding-right: 5 px;">Address:</td><td style="text.align:left;">{address}</td></tr>
+          <tr><td style="font-weight:bold;text.align:left; padding-right: 5 px;">City:</td><td style="text-align:left;">{city}</td></tr>
+          <tr><td style="font-weight:bold;text.align:left; padding-right: 5 px;">State:</td><td style="text.align:left;">{state}</td></tr>
+          <tr><td style="font-weight:bold;text.align:left; padding-right: 5 px;">Zip:</td><td style="text.align:left;">{zip_code}</td></tr>
+          <tr><td style="font-weight:bold;text.align:left; padding-right: 5 px;">Phone:</td><td style="text-align:left;">{phone}</td></tr>
+          <tr><td colspan="2" style="text-align:left;">Items Ordered:</td></tr>
+          <tr><td style="font-weight:bold;text.align:left; padding-right: 5 px;">First Meat Choice:</td><td style="text.align:left;">{meat_choices.get(meat1, meat1)}</td></tr>
+          <tr><td style="font-weight:bold;text.align:left; padding-right: 5 px;">Second Meat Choice:</td><td style="text-align:left;">{meat_choices.get(meat2, meat2)}</td></tr>
+          <tr><td colspan="2" style="text-align:left;">Additional Items:</td></tr>
+          {''.join(format_item(item) for item in formatted_items)}
+          <tr><td colspan="2" style="text.align:left;">Summary:</td></tr>
+          <tr><td style="font-weight:bold;text.align:left; padding-right: 5 px;">Base Amount:</td><td style="text-align:left;">${int(base_amount) / 100:.2f}</td></tr>
+          <tr><td style="font-weight:bold;text.align:left; padding-right: 5 px;">Sub-total:</td><td style="text.align:left;">${float(sub_total) / 100:.2f}</td></tr>
+          <tr><td style="font-weight:bold;text.align:left; padding-right: 5 px;">Tax (7.75%):</td><td style="text.align:left;">${float(tax) / 100:.2f}</td></tr>
+          <tr><td style="font-weight:bold;text.align:left; padding-right: 5 px;">Grand Total:</td><td style="text.align:left;">${float(grand_total) / 100:.2f}</td></tr>
+        </table>
+        </body>
+        </html>
+        """
 
-    # Send email to the restaurant
-    msg_to_restaurant = Message(
-        "New Catering Order",
-        sender="rbresnik@gmail.com",
-        recipients=["rob@elpueblomex.com"],
-    )
-    msg_to_restaurant.html = restaurant_email_body
-    mail.send(msg_to_restaurant)
+        # Send email to the customer
+        msg_to_customer = Message(
+            "Your Catering Order Confirmation",
+            sender="rbresnik@gmail.com",
+            recipients=[customer_email],
+        )
+        msg_to_customer.html = customer_email_body
+        mail.send(msg_to_customer)
 
-    return render_template("summary.html", **order_details)
+        # Send email to the restaurant
+        msg_to_restaurant = Message(
+            "New Catering Order",
+            sender="rbresnik@gmail.com",
+            recipients=["rob@elpueblomex.com"],
+        )
+        msg_to_restaurant.html = restaurant_email_body
+        mail.send(msg_to_restaurant)
+
+        return render_template("summary.html", **order_details)
+    except Exception as e:
+        print(f"Error processing success route: {e}")
+        return jsonify({"error": str(e)}), 500
 
 
 @app.route("/orders")
@@ -450,8 +463,7 @@ def orders():
     return render_template("orders.html", orders=all_orders, meat_choices=meat_choices)
 
 
-################################################ END ######################################################
 if __name__ == "__main__":
     with app.app_context():
         db.create_all()
-    app.run(debug=True)
+    app.run(host="0.0.0.0", port=8080)
