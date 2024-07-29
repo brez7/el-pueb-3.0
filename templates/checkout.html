@@ -116,86 +116,88 @@
         parseFloat(urlParams.get("grand_total")) / 100
       ).toFixed(2);
 
-    const form = document.getElementById('payment-form');
-    form.addEventListener('submit', async (event) => {
-      event.preventDefault();
+ const form = document.getElementById('payment-form');
+form.addEventListener('submit', async (event) => {
+    event.preventDefault();
 
-      const email = document.getElementById('email').value;
-      const firstName = document.getElementById('first_name').value;
-      const lastName = document.getElementById('last_name').value;
-      const address = document.getElementById('address').value;
-      const city = document.getElementById('city').value;
-      const state = document.getElementById('state').value;
-      const zip = document.getElementById('zip').value;
-      const phone = document.getElementById('phone').value;
-      const people = urlParams.get('people');
-      const date = urlParams.get('date');
-      const time = urlParams.get('time');
-      const total_amount = parseInt(urlParams.get('total_amount'));  // Convert to integer
-      const base_amount = parseInt(urlParams.get('base_amount'));    // Convert to integer
-      const sub_total = parseFloat(urlParams.get('sub_total'));      // Convert to float
-      const tax = parseFloat(urlParams.get('tax'));                  // Convert to float
-      const grand_total = parseFloat(urlParams.get('grand_total'));  // Convert to float
-      const meat1 = urlParams.get('meat1');
-      const meat2 = urlParams.get('meat2');
-      const items = JSON.parse(decodeURIComponent(urlParams.get('items')));
+    const email = document.getElementById('email').value;
+    const firstName = document.getElementById('first_name').value;
+    const lastName = document.getElementById('last_name').value;
+    const address = document.getElementById('address').value;
+    const city = document.getElementById('city').value;
+    const state = document.getElementById('state').value;
+    const zip = document.getElementById('zip').value;
+    const phone = document.getElementById('phone').value;
+    const people = urlParams.get('people');
+    const date = urlParams.get('date');
+    const time = urlParams.get('time');
+    const total_amount = parseInt(urlParams.get('total_amount'));  // Convert to integer
+    const base_amount = parseInt(urlParams.get('base_amount'));    // Convert to integer
+    const sub_total = parseFloat(urlParams.get('sub_total'));      // Convert to float
+    const tax = parseFloat(urlParams.get('tax'));                  // Convert to float
+    const grand_total = parseFloat(urlParams.get('grand_total'));  // Convert to float
+    const meat1 = urlParams.get('meat1');
+    const meat2 = urlParams.get('meat2');
+    const items = JSON.parse(decodeURIComponent(urlParams.get('items')));
 
-      const response = await fetch(window.location.pathname + window.location.search, {
+    const response = await fetch(window.location.pathname + window.location.search, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          email: email,
-          first_name: firstName,
-          last_name: lastName,
-          address: address,
-          city: city,
-          state: state,
-          zip: zip,
-          phone: phone,
-          people: people,
-          date: date,
-          time: time,
-          total_amount: total_amount,
-          base_amount: base_amount,
-          sub_total: sub_total,
-          tax: tax,
-          grand_total: grand_total,
-          meat1: meat1,
-          meat2: meat2
+            email: email,
+            first_name: firstName,
+            last_name: lastName,
+            address: address,
+            city: city,
+            state: state,
+            zip: zip,
+            phone: phone,
+            people: people,
+            date: date,
+            time: time,
+            total_amount: total_amount,
+            base_amount: base_amount,
+            sub_total: sub_total,
+            tax: tax,
+            grand_total: grand_total,
+            meat1: meat1,
+            meat2: meat2
         })
-      });
+    });
 
-      const result = await response.json();
-      const clientSecret = result.clientSecret;
+    const result = await response.json();
+    const clientSecret = result.clientSecret;
 
-      if (total_amount > 0) {
+    if (grand_total > 0) {
         const { error, paymentIntent } = await stripe.confirmCardPayment(clientSecret, {
-          payment_method: {
-            card: cardElement,
-            billing_details: {
-              name: `${firstName} ${lastName}`,
-              email: email,
-              address: {
-                line1: address,
-                city: city,
-                state: state,
-                postal_code: zip
-              },
-              phone: phone
+            payment_method: {
+                card: cardElement,
+                billing_details: {
+                    name: `${firstName} ${lastName}`,
+                    email: email,
+                    address: {
+                        line1: address,
+                        city: city,
+                        state: state,
+                        postal_code: zip
+                    },
+                    phone: phone
+                }
             }
-          }
         });
         if (error) {
-          document.getElementById('payment-result').textContent = error.message;
+            document.getElementById('payment-result').textContent = error.message;
         } else if (paymentIntent.status === 'succeeded') {
-          document.getElementById('payment-result').textContent = 'Payment successful!';
-          window.location.href = `/success?email=${encodeURIComponent(email)}&first_name=${encodeURIComponent(firstName)}&last_name=${encodeURIComponent(lastName)}&address=${encodeURIComponent(address)}&city=${encodeURIComponent(city)}&state=${encodeURIComponent(state)}&zip=${encodeURIComponent(zip)}&phone=${encodeURIComponent(phone)}&people=${encodeURIComponent(parseInt(people))}&date=${encodeURIComponent(date)}&time=${encodeURIComponent(time)}&total_amount=${encodeURIComponent(parseInt(total_amount))}&base_amount=${encodeURIComponent(parseInt(base_amount))}&sub_total=${encodeURIComponent(parseFloat(sub_total))}&tax=${encodeURIComponent(parseFloat(tax))}&grand_total=${encodeURIComponent(parseFloat(grand_total))}&meat1=${encodeURIComponent(meat1)}&meat2=${encodeURIComponent(meat2)}&items=${encodeURIComponent(JSON.stringify(items))}`;
+            document.getElementById('payment-result').textContent = 'Payment successful!';
+            window.location.href = `/success?email=${encodeURIComponent(email)}&first_name=${encodeURIComponent(firstName)}&last_name=${encodeURIComponent(lastName)}&address=${encodeURIComponent(address)}&city=${encodeURIComponent(city)}&state=${encodeURIComponent(state)}&zip=${encodeURIComponent(zip)}&phone=${encodeURIComponent(phone)}&people=${encodeURIComponent(parseInt(people))}&date=${encodeURIComponent(date)}&time=${encodeURIComponent(time)}&total_amount=${encodeURIComponent(parseInt(total_amount))}&base_amount=${encodeURIComponent(parseInt(base_amount))}&sub_total=${encodeURIComponent(parseFloat(sub_total))}&tax=${encodeURIComponent(parseFloat(tax))}&grand_total=${encodeURIComponent(parseFloat(grand_total))}&meat1=${encodeURIComponent(meat1)}&meat2=${encodeURIComponent(meat2)}&items=${encodeURIComponent(JSON.stringify(items))}`;
         }
-      } else {
+    } else {
         document.getElementById('payment-result').textContent = 'Payment successful!';
         window.location.href = `/success?email=${encodeURIComponent(email)}&first_name=${encodeURIComponent(firstName)}&last_name=${encodeURIComponent(lastName)}&address=${encodeURIComponent(address)}&city=${encodeURIComponent(city)}&state=${encodeURIComponent(state)}&zip=${encodeURIComponent(zip)}&phone=${encodeURIComponent(phone)}&people=${encodeURIComponent(people)}&date=${encodeURIComponent(date)}&time=${encodeURIComponent(time)}&total_amount=${encodeURIComponent(total_amount)}&base_amount=${encodeURIComponent(base_amount)}&sub_total=${encodeURIComponent(sub_total)}&tax=${encodeURIComponent(tax)}&grand_total=${encodeURIComponent(grand_total)}&meat1=${encodeURIComponent(meat1)}&meat2=${encodeURIComponent(meat2)}&items=${encodeURIComponent(JSON.stringify(items))}`;
-      }
-    });
+    }
+});
+
+
   </script>
 </div>
 {% endblock %}

@@ -169,20 +169,32 @@ def checkout():
 
         total_amount = data.get("total_amount")
         base_amount = data.get("base_amount")
+        sub_total = data.get("sub_total")
+        tax = data.get("tax")
+        grand_total = data.get("grand_total")
 
-        if total_amount is None or base_amount is None:
+        if (
+            total_amount is None
+            or base_amount is None
+            or sub_total is None
+            or tax is None
+            or grand_total is None
+        ):
             return jsonify({"error": "Missing amount data"}), 400
 
         try:
             total_amount = int(total_amount)
             base_amount = int(base_amount)
+            sub_total = int(sub_total)
+            tax = int(tax)
+            grand_total = int(grand_total)
         except ValueError:
             return jsonify({"error": "Invalid amount data"}), 400
 
         try:
-            if total_amount > 0:
+            if grand_total > 0:
                 payment_intent = stripe.PaymentIntent.create(
-                    amount=total_amount,
+                    amount=grand_total,
                     currency="usd",
                     payment_method_types=["card"],
                 )
