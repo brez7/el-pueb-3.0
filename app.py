@@ -8,14 +8,14 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 
 app = Flask(__name__)
-stripe.api_key = "sk_test_51HMJ15LkC2vPsGwFJOABaLMeVM3Wzvfa9TaHFtWbYwBw2G3mwwV76RN5rnAK3Z29uXwBxn9KyK8pzl1cYIGnxM1E00NlJJCFmT"
+stripe.api_key = "f"
 
 # Configure Flask-Mail with Gmail SMTP server using TLS
 app.config["MAIL_SERVER"] = "smtp.gmail.com"
 app.config["MAIL_PORT"] = 587
 app.config["MAIL_USERNAME"] = "rbresnik@gmail.com"
 app.config["MAIL_PASSWORD"] = (
-    "dzybveqbvyjqbtch"  # Use the provided app-specific password
+    "f"  # Use the provided app-specific password
 )
 app.config["MAIL_USE_TLS"] = True
 app.config["MAIL_USE_SSL"] = False
